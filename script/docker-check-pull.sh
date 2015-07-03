@@ -2,29 +2,32 @@
 set -e
 
 # Set environment variables with defaults
-SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 DOCKER_IMAGE_NAME="${1:-$DOCKER_IMAGE_NAME}"
-DOCKER_CONFIG_FILE="${DOCKER_CONFIG_FILE:-$HOME/.dockercfg}"
 
-# Get the full image description if not provided
-if [ -z "${DOCKER_IMAGE_DESC}" ]; then
-  IFS=: read repository tag <<<"${DOCKER_IMAGE_NAME}"
-  tag=${tag:-latest}
-  image_desc=$(docker images | head | grep -E -e \"^${image_name}\\s+${image_tag}\\s+\" | awk '{ print $3 }')
+# Extract the individual values based on whether we have an image name of description
+if ! [ -z "${DOCKER_IMAGE_NAME}" ]; then
+  # ex. "tenstartups/coreos-12factor-init:latest"
+  IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
+  image_tag=${image_tag:-latest}
+  image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+elif ! [ -z "${DOCKER_IMAGE_DESC}" ]; then
+  # ex. "tenstartups/coreos-12factor-init  latest  fa6ac343e5c1  About an hour ago  10.17 MB"
+  repository=$(echo "${DOCKER_IMAGE_DESC}" | awk '{ print $1 }')
+  image_tag=$(echo "${DOCKER_IMAGE_DESC}" | awk '{ print $2 }')
+  image_id=$(echo "${DOCKER_IMAGE_DESC}" | awk '{ print $3 }')
 else
-  image_desc=${DOCKER_IMAGE_DESC}
+  echo "You must provide either DOCKER_IMAGE_NAME or DOCKER_IMAGE_DESC envrionment variable."
+  exit 1
 fi
 
-# Extract the individual components of the image name
-repository=$(echo "${image_desc}" | awk '{ print $1 }')
+# Update the docker image name
+DOCKER_IMAGE_NAME="${repository}:${image_tag}"
+
+# Extract the private registry host and normalize the repository name
 private_registry_host=`echo ${repository} | \
   sed -En 's/^\s*((https?:\/\/)?(([-_A-Za-z0-9]+\.)+([-_A-Za-z0-9]+))\/)?(.+)$/\3/p'`
-image_name=`echo ${repository} | \
+repository=`echo ${repository} | \
   sed -En 's/^\s*((https?:\/\/)?(([-_A-Za-z0-9]+\.)+([-_A-Za-z0-9]+))\/)?(.+)$/\6/p'`
-image_tag=$(echo "${image_desc}" | awk '{ print $2 }')
-image_id=$(echo "${image_desc}" | awk '{ print $3 }')
-
-echo "Checking ${repository}:${image_tag} ($image_id) for newer version..."
 
 # Set the registry auth key and url based on whether it's private or Docker Hub
 if [ -z "${private_registry_host}" ]; then
@@ -36,20 +39,47 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-auth_token=$(cat "${DOCKER_CONFIG_FILE}" | "${SCRIPT_DIR}/json-parse" | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
+auth_token=$(cat "${HOME}/.dockercfg" | "/12factor/bin/json-parse" | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
-  remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${image_name}/tags/${image_tag}" | \
-    "${SCRIPT_DIR}/json-parse" | grep '\[0,"id"\]' | awk '{ gsub(/"/, ""); print $2 }'`
+  remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${repository}/tags/${image_tag}" | \
+    "/12factor/bin/json-parse" | grep '\[0,"id"\]' | awk '{ gsub(/"/, ""); print $2 }'`
 else
-  remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${image_name}/tags/${image_tag}" | \
+  remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${repository}/tags/${image_tag}" | \
     sed -En 's/["]([0-9a-fA-F]+)["]/\1/p' | cut -c 1-12`
 fi
 
-# Check if the remote image id is different that what we have locally
-if ! [ -z "${remote_image_id}" ] && ! [ -z "${image_id}" ] && ! [[ ${image_id} = ${remote_image_id}* ]]; then
-  "${SCRIPT_DIR}/send-notification" info "Downloading newer docker image for ${repository}:${image_tag}"
-  "${SCRIPT_DIR}/run-and-notify" "Updating docker image \`${repository}:${image_tag}\` \`(${image_id} => ${remote_image_id})\`" \
-    docker pull "${repository}:${image_tag}"
+# Check if the image id has changed
+if ! [ -z ${remote_image_id} ]; then
+  if [ -z ${image_id} ]; then
+    echo "Missing docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
+    pull_image=true
+  elif ! [[ ${image_id} = ${remote_image_id}* ]]; then
+    echo "Outdated docker image ${DOCKER_IMAGE_NAME} (${image_id} => ${remote_image_id})"
+    pull_image=true
+  fi
+fi
+
+# Pull the image if necessary
+if [ "$pull_image" = "true" ]; then
+  (
+    echo "Pulling docker image ${DOCKER_IMAGE_NAME}"
+    # /12factor/bin/send-notification info "Pulling docker image \`${DOCKER_IMAGE_NAME}\`"
+    flock --exclusive --wait 300 200 || exit 1
+
+    # Pull the newer image
+    docker pull "${DOCKER_IMAGE_NAME}"
+
+    # Generate a filename to dump the image id to on update, which can be used to
+    # trigger actions on image changes
+    image_id_file="/data/docker/ids/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}"
+
+    # Dump the image id atomically to file
+    printf $remote_image_id | tee "$image_id_file.tmp"
+    rsync --remove-source-files --checksum --chmod=a+rw "$image_id_file.tmp" "$image_id_file"
+
+    echo "Pullied docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
+    # /12factor/bin/send-notification success "Pulled docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
+  ) 200>/var/lock/.docker.lockfile
 fi

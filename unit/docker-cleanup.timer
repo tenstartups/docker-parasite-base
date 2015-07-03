@@ -1,0 +1,7 @@
+[Unit]
+Description=Docker container and image cleanup timer
+
+[Timer]
+OnBootSec=15min
+OnCalendar=hourly
+Unit=docker-cleanup.service

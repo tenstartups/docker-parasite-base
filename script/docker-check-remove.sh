@@ -2,20 +2,22 @@
 set -e
 
 # Set environment
-DOCKER_IMAGE_NAME="${1:-$DOCKER_CONTAINER_NAME}"
-LOG_DIRECTORY="/tmp/docker-killed-logs"
+DOCKER_CONTAINER_NAME="${1:-$DOCKER_CONTAINER_NAME}"
 
 # Stop the container if running
 running=$(/usr/bin/docker inspect -f {{.State.Running}} ${DOCKER_CONTAINER_NAME} 2>/dev/null || true)
 if [ "$running" = "true" ]; then
-  docker stop "${DOCKER_CONTAINER_NAME}" 2&>1 >/dev/null
-  docker kill "${DOCKER_CONTAINER_NAME}" 2&>1 >/dev/null
+  docker stop "${DOCKER_CONTAINER_NAME}" > /dev/null 2>&1
+  docker kill "${DOCKER_CONTAINER_NAME}" > /dev/null 2>&1
 fi
 
 # Remove the container if present
-present=$(/usr/bin/docker inspect -f {{.Id}} ${DOCKER_CONTAINER_NAME} 2>/dev/null || true)
-if ! [ -z "$present" ]; then
-  mkdir -p "${LOG_DIRECTORY}"
-  docker logs > "${LOG_DIRECTORY}/${DOCKER_CONTAINER_NAME}.log"
-  docker rm -f -v "${DOCKER_CONTAINER_NAME}"
+container_image_id=$(/usr/bin/docker inspect -f {{.Image}} ${DOCKER_CONTAINER_NAME} 2>/dev/null || true)
+container_id=$(/usr/bin/docker inspect -f {{.Id}} ${container_image_id} 2>/dev/null || true)
+if ! [ -z "$container_id" ]; then
+  docker logs "${DOCKER_CONTAINER_NAME}" > "/data/docker/logs/${DOCKER_CONTAINER_NAME}.log"
+  (
+    flock --exclusive --wait 30 200 || exit 1
+    docker rm -f -v "${DOCKER_CONTAINER_NAME}"
+  ) 200>/var/lock/.docker.lockfile
 fi

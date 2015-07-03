@@ -1,0 +1,7 @@
+[Unit]
+Description=Docker container and image cleanup service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/12factor/env/systemd.env
+ExecStart=/12factor/bin/docker-cleanup

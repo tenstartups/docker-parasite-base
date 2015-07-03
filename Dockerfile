@@ -1,25 +1,32 @@
 #
-# A collection of useful CoreOS scripts packaged into a Docker image
+# CoreOS twelve-factor application initialization and configuration docker image
 #
-# http://github.com/tenstartups/coreos-scripts-docker
+# http://github.com/tenstartups/coreos-12factor-init-docker
 #
 
-FROM gliderlabs/alpine:latest
+FROM alpine:latest
 
 MAINTAINER Marc Lennox <marc.lennox@gmail.com>
 
-# Define environment.
-ENV PATH=$PATH:/coreos-scripts
+# Set environment variables.
+ENV TERM=xterm-color
 
-# Define working directory.
-WORKDIR /coreos-scripts
+# Install packages.
+RUN \
+  apk --update add bash curl nano wget && \
+  rm /var/cache/apk/*
+
+# Set the working directory.
+WORKDIR "/data"
 
 # Add files to the container.
-ADD script/ /coreos-scripts/
-ADD entrypoint /usr/local/bin/entrypoint
+ADD . /data
 
 # Define volumes.
-VOLUME ["/coreos-scripts"]
+VOLUME ["/12factor"]
 
 # Set the entrypoint script.
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
+ENTRYPOINT ["/data/entrypoint"]
+
+# Set the default command
+CMD ["/bin/bash"]

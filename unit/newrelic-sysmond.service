@@ -1,0 +1,18 @@
+[Unit]
+Description=NewRelic system monitor agent service
+
+[Service]
+User=root
+Restart=always
+RestartSec=1s
+StartLimitInterval=30s
+StartLimitBurst=5
+EnvironmentFile=/12factor/env/systemd.env
+Environment=SERVICE_NAME=newrelic-sysmond
+Environment=NRSYSMOND_PID_FILE=/var/run/nrsysmond.pid
+ExecStartPre=-/12factor/bin/send-notification info "Starting `${SERVICE_NAME}` service"
+ExecStartPre=/12factor/bin/init-newrelic-sysmond
+ExecStart=/12factor/bin/nrsysmond -f -n %H -c "${NRSYSMOND_CONFIG_FILE}"
+ExecStartPost=/usr/bin/bash -c 'sleep 5; kill -0 $(cat ${NRSYSMOND_PID_FILE})'
+ExecStartPost=-/12factor/bin/send-notification success "Started `${SERVICE_NAME}` service"
+ExecStop=/usr/bin/bash -c 'kill $(cat ${NRSYSMOND_PID_FILE})'
