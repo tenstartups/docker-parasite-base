@@ -1,0 +1,9 @@
+#!/bin/sh
+set -e
+
+# Copy scripts into the specified directory if provided
+if ! [ -z "${COREOS_SCRIPTS_COPY_TO_DIR}" ] && [ -d "${COREOS_SCRIPTS_COPY_TO_DIR}" ]; then
+  find /coreos-scripts -regex '^.*\.sh\s*$' -exec sh -c 'f=`basename "{}"`; cp -v "{}" "${COREOS_SCRIPTS_COPY_TO_DIR}/${f%.*}"' \;
+fi
+
+"$@"
