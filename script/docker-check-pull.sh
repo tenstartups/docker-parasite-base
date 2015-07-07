@@ -63,11 +63,11 @@ fi
 
 # Pull the image if necessary
 if [ "$pull_image" = "true" ]; then
+  old_umask=`umask`
+  umask 0000
   (
     echo "Pulling docker image ${DOCKER_IMAGE_NAME}"
     # /12factor/bin/send-notification info "Pulling docker image \`${DOCKER_IMAGE_NAME}\`"
-    old_umask=`umask`
-    umask 0000
     flock --exclusive --wait 300 200 || exit 1
 
     # Pull the newer image
