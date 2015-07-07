@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+old_umask=`umask`
+umask 0000
 (
   flock --exclusive --wait 300 200 || exit 1
 
@@ -9,8 +11,11 @@ set -e
     docker rm -v ${container_id} || true
   done
 
-) 200>/var/lock/.docker.lockfile
+) 200>/tmp/.docker.lockfile
+umask $old_umask
 
+old_umask=`umask`
+umask 0000
 (
   flock --exclusive --wait 300 200 || exit 1
 
@@ -19,4 +24,5 @@ set -e
     docker rmi ${image_id} || true
   done
 
-) 200>/var/lock/.docker.lockfile
+) 200>/tmp/.docker.lockfile
+umask $old_umask
