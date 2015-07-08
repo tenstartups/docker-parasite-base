@@ -1,12 +1,12 @@
 [Unit]
-Description=CoreOS install bash completion service
+Description=CoreOS useful tools installation service
 
 [Service]
 Type=oneshot
 User=core
 WorkingDirectory=/home/core
 EnvironmentFile=/12factor/env/systemd.env
-Environment=SERVICE_NAME=install-bash-completion
-ExecStartPre=-/12factor/bin/send-notification info "Started `${SERVICE_NAME}` service"
+Environment=SERVICE_NAME=tools-install
+ExecStartPre=-/12factor/bin/send-notification info "Starting `${SERVICE_NAME}` service"
 ExecStart=/12factor/bin/coreos-install-bash-completion
 ExecStartPost=-/12factor/bin/send-notification success "Finished `${SERVICE_NAME}` service"

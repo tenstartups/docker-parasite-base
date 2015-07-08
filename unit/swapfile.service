@@ -9,5 +9,5 @@ EnvironmentFile=/12factor/env/systemd.env
 Environment=SERVICE_NAME=swap-file
 ExecStartPre=-/12factor/bin/send-notification info "Starting `${SERVICE_NAME}` service"
 ExecStart=/12factor/bin/coreos-enable-swap
-ExecStartPost=-/12factor/bin/send-notification success "Started `${SERVICE_NAME}` service"
+ExecStartPost=-/12factor/bin/send-notification success "Finished starting `${SERVICE_NAME}` service"
 ExecStop=/12factor/bin/coreos-disable-swap

@@ -66,8 +66,8 @@ if [ "$pull_image" = "true" ]; then
   old_umask=`umask`
   umask 0000
   (
-    echo "Pulling docker image ${DOCKER_IMAGE_NAME}"
-    # /12factor/bin/send-notification info "Pulling docker image \`${DOCKER_IMAGE_NAME}\`"
+    echo "Pulling docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
+    /12factor/bin/send-notification warn "Pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
     flock --exclusive --wait 300 200 || exit 1
 
     # Pull the newer image
@@ -81,8 +81,8 @@ if [ "$pull_image" = "true" ]; then
     printf $remote_image_id > "$image_id_file.tmp"
     rsync --remove-source-files --checksum --chmod=a+rw "$image_id_file.tmp" "$image_id_file"
 
-    echo "Pulled docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
-    # /12factor/bin/send-notification success "Pulled docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
+    echo "Finished pulling docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
+    /12factor/bin/send-notification success "Finished pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
   ) 200>/tmp/.docker.lockfile
   umask $old_umask
 fi
