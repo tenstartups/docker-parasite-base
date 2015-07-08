@@ -39,12 +39,12 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-auth_token=$(cat "/12factor/auth/docker.yml" | "/12factor/bin/json-parse" | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
+auth_token=$(cat "/12factor/auth/docker.yml" | "/12factor/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
   remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${repository}/tags/${image_tag}" | \
-    "/12factor/bin/json-parse" | grep '\[0,"id"\]' | awk '{ gsub(/"/, ""); print $2 }'`
+    "/12factor/bin/json-parse" 2>/dev/null | grep '\[0,"id"\]' | awk '{ gsub(/"/, ""); print $2 }'`
 else
   remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${repository}/tags/${image_tag}" | \
     sed -En 's/["]([0-9a-fA-F]+)["]/\1/p' | cut -c 1-12`
@@ -81,7 +81,7 @@ if [ "$pull_image" = "true" ]; then
     printf $remote_image_id > "$image_id_file.tmp"
     rsync --remove-source-files --checksum --chmod=a+rw "$image_id_file.tmp" "$image_id_file"
 
-    echo "Pullied docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
+    echo "Pulled docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
     # /12factor/bin/send-notification success "Pulled docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
   ) 200>/tmp/.docker.lockfile
   umask $old_umask
