@@ -39,7 +39,7 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-auth_token=$(cat "${HOME}/.dockercfg" | "/12factor/bin/json-parse" | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
+auth_token=$(cat "/12factor/auth/docker.yml" | "/12factor/bin/json-parse" | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
