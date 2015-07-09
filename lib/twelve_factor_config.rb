@@ -46,9 +46,6 @@ class TwelveFactorConfig
           FileUtils.chmod(file['permissions'], file['path'])
         end
       end
-      if file['owner']
-        FileUtils.chown(file['owner'].split(':').first, file['owner'].split(':').last, file['path'])
-      end
     end
 
   end
