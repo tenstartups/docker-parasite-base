@@ -4,29 +4,26 @@
 # http://github.com/tenstartups/coreos-12factor-init-docker
 #
 
-FROM alpine:latest
+FROM tenstartups/alpine-ruby:latest
 
 MAINTAINER Marc Lennox <marc.lennox@gmail.com>
 
-# Set environment variables.
-ENV TERM=xterm-color
-
-# Install packages.
-RUN \
-  apk --update add bash curl nano wget && \
-  rm /var/cache/apk/*
+# Set environment
+ENV \
+  HOME=/home/12factor \
+  RUBYLIB=/home/12factor/lib
 
 # Set the working directory.
-WORKDIR "/data"
+WORKDIR "/home/12factor"
 
 # Add files to the container.
-ADD . /data
+ADD . /home/12factor
 
 # Define volumes.
-VOLUME ["/12factor"]
+VOLUME ["/home/12factor"]
 
 # Set the entrypoint script.
-ENTRYPOINT ["/data/entrypoint"]
+ENTRYPOINT ["/home/12factor/entrypoint"]
 
 # Set the default command
 CMD ["/bin/bash"]

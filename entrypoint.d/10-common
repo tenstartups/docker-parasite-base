@@ -1,0 +1,4 @@
+#!/usr/bin/env ruby
+require 'twelve_factor_config'
+
+TwelveFactorConfig.new(File.join(File.dirname(File.dirname(__FILE__)), 'conf', "#{File.basename(__FILE__)}.yml"))

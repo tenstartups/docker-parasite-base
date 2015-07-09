@@ -1,39 +1,6 @@
 #!/bin/bash
 set -e
 
-# Copy initialization scripts into place
-mkdir -p "/12factor/init"
-find /data/init -type f | while read f; do
-  echo "'$f' -> '/12factor/init/`basename $f`'"
-  cp "$f" "/12factor/init/"
-done
-
-# Copy initialization script pieces into place
-mkdir -p "/12factor/init.d"
-find /data/init.d -type f | while read f; do
-  echo "'$f' -> '/12factor/init.d/`basename $f`'"
-  cp "$f" "/12factor/init.d/"
-done
-
-# Copy utility scripts into place
-mkdir -p "/12factor/script"
-find /data/script -type f | while read f; do
-  echo "'$f' -> '/12factor/script/`basename $f`'"
-  cp "$f" "/12factor/script/"
-done
-
-# Copy systemd units into place
-mkdir -p "/12factor/unit"
-find /data/unit -type f | while read f; do
-  echo "'$f' -> '/12factor/unit/`basename $f`'"
-  cp "$f" "/12factor/unit/"
-done
-
-# Copy environment file pieces into place
-mkdir -p "/12factor/env.d"
-find /data/env.d -type f | while read f; do
-  echo "'$f' -> '/12factor/env.d/`basename $f`'"
-  cp "$f" "/12factor/env.d/"
-done
+find "./entrypoint.d" -type f | sort | while read f; do "$f"; done
 
 "$@"

@@ -1,2 +1,2 @@
-# coreos-scripts-docker
-A collection of useful CoreOS scripts.
+# coreos-12factor-init
+CoreOS twelve-factor application initialization and configuration docker image.
