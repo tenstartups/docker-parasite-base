@@ -1,7 +1,7 @@
 #!/bin/bash +x
 
 # Set environment
-DOCKER_IMAGE_NAME=tenstartups/notifier:latest
+DOCKER_IMAGE_NAME=<%= docker_images[:notifier] %>
 
 # Make sure we don't get into an endless reentry loop
 if [ "${SEND_NOTIFICATION_ENTRY_COUNT:-0}" -gt 0 ]; then
