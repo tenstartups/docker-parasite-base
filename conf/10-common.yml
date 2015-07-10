@@ -2,32 +2,32 @@
 files:
 
   # Environment files
-<% Dir['./common/env.d/*.env'].each do |file| %>
+<% Dir['./10-common/env.d/*.env'].each do |file| %>
   - path: /12factor/env.d/<%= File.basename(file) %>
     permissions: '0644'
-    source: ./common/env.d/<%= File.basename(file) %>
+    source: ./10-common/env.d/<%= File.basename(file) %>
 <% end %>
 
   # Initialization files
   - path: /12factor/init
     permissions: '0755'
-    source: ./common/init
-<% Dir['./common/init.d/*.sh'].each do |file| %>
+    source: ./10-common/init
+<% Dir['./10-common/init.d/*.sh'].each do |file| %>
   - path: /12factor/init.d/<%= File.basename(file) %>
     permissions: '0755'
-    source: ./common/init.d/<%= File.basename(file) %>
+    source: ./10-common/init.d/<%= File.basename(file) %>
 <% end %>
 
   # Script files
-<% Dir['./common/script/*.sh'].each do |file| %>
+<% Dir['./10-common/script/*.sh'].each do |file| %>
   - path: /12factor/script/<%= File.basename(file) %>
     permissions: '0755'
-    source: ./common/script/<%= File.basename(file) %>
+    source: ./10-common/script/<%= File.basename(file) %>
 <% end %>
 
   # Systemd unit files
-<% Dir['./common/unit/*.{path,service,timer}'].each do |file| %>
+<% Dir['./10-common/unit/*.{path,service,timer}'].each do |file| %>
   - path: /12factor/unit/<%= File.basename(file) %>
     permissions: '0644'
-    source: ./common/unit/<%= File.basename(file) %>
+    source: ./10-common/unit/<%= File.basename(file) %>
 <% end %>
