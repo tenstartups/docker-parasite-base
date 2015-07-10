@@ -7,9 +7,11 @@ ln -nfs "/var/run/12factor" "/12factor"
 # Execute each initialization cloud-config or script in alphabetical order
 find "/12factor/init.d" -type f | sort | while read file; do
   if [[ "$file" == *.yml ]]; then
+    echo "Executing twelve-factor initialization cloud-config $file..."
     coreos-cloudinit --from-file="$file"
   fi
   if [[ "$file" == *.sh ]]; then
+    echo "Executing twelve-factor initialization script $file..."
     "$file"
   fi
 done
