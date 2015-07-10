@@ -9,9 +9,9 @@ files:
 <% end %>
 
   # Initialization files
-  - path: /12factor/init/bootstrap
+  - path: /12factor/init
     permissions: '0755'
-    source: ./common/init/bootstrap
+    source: ./common/init
 <% Dir['./common/init.d/*.sh'].each do |file| %>
   - path: /12factor/init.d/<%= File.basename(file) %>
     permissions: '0755'
