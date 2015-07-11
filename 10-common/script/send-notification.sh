@@ -1,8 +1,5 @@
 #!/bin/bash +x
 
-# Set environment
-DOCKER_IMAGE_NAME=<%= docker_images[:notifier] %>
-
 # Make sure we don't get into an endless reentry loop
 if [ "${SEND_NOTIFICATION_ENTRY_COUNT:-0}" -gt 0 ]; then
   echo "Send notification entry recursion detected"
@@ -12,7 +9,7 @@ else
 fi
 
 # Pull the image
-/12factor/bin/docker-check-pull "${DOCKER_IMAGE_NAME}"
+/12factor/bin/docker-check-pull "${DOCKER_IMAGE_NOTIFIER}"
 
 # Call the notifier with our without an attachment
 if [ -z "${FILE_ATTACHMENT}" ]; then
@@ -21,7 +18,7 @@ if [ -z "${FILE_ATTACHMENT}" ]; then
     -e LOGSPOUT=ignore \
     -e MESSAGE="${MESSAGE}" \
     --hostname=notifier.$(hostname) \
-    ${DOCKER_IMAGE_NAME} \
+    ${DOCKER_IMAGE_NOTIFIER} \
     "$@"
 else
   docker run --rm \
@@ -31,6 +28,6 @@ else
     -e MESSAGE="${MESSAGE}" \
     -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \
     --hostname=notifier.$(hostname) \
-    ${DOCKER_IMAGE_NAME} \
+    ${DOCKER_IMAGE_NOTIFIER} \
     "$@"
 fi

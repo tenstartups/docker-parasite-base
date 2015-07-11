@@ -1,12 +1,5 @@
 #!/usr/bin/env ruby
 require 'twelve_factor_config'
 
-# Set the erb binding
-options = {
-  docker_images: {
-    notifier: 'tenstartups/notifier:latest'
-  }
-}
-
 # Generate the configurations
-TwelveFactorConfig.new('./conf/10-common.yml', options)
+TwelveFactorConfig.new('./conf/10-common.yml')

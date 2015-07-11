@@ -32,6 +32,10 @@ class TwelveFactorConfig
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
       end
+      if File.exist?(file['path'])
+        STDERR.puts "File path '#{file['path']}' already exists."
+        exit 1
+      end
 
       # Echo a message
       puts "'#{file['source']}' -> '#{file['path']}'"
