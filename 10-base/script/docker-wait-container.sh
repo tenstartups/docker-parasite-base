@@ -12,6 +12,8 @@ if [ -z "${DOCKER_CONTAINER_NAME}" ]; then
   exit 1
 fi
 
+T="$(date +%s)"
+
 test_number=0
 next_test_wait=1
 while [[ ${test_number} < ${MAX_CHECKS} ]]; do
@@ -23,11 +25,15 @@ while [[ ${test_number} < ${MAX_CHECKS} ]]; do
   next_test_wait=$(( next_test_wait * 2 ))
 done
 
+T="$(($(date +%s)-T))"
+
 # Exit based on whether the container is running or not
 if [ "${CONTAINER_RUNNING}" = "true" ]; then
-  echo "Container ${DOCKER_CONTAINER_NAME} is running after ${test_number} check(s)."
+  echo "Container ${DOCKER_CONTAINER_NAME} is running after $T seconds."
+  /12factor/bin/send-notification success "Container \`${DOCKER_CONTAINER_NAME}\` is running after $T seconds."
   exit 0
 else
-  echo "Container ${DOCKER_CONTAINER_NAME} not running after ${test_number} check(s)."
+  echo "Container ${DOCKER_CONTAINER_NAME} is NOT running after $T seconds."
+  /12factor/bin/send-notification error "Container \`${DOCKER_CONTAINER_NAME}\` is NOT running after $T seconds."
   exit 1
 fi

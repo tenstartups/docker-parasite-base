@@ -2,4 +2,4 @@
 require 'twelve_factor_config'
 
 # Generate the configurations
-TwelveFactorConfig.new('./conf/10-common.yml')
+TwelveFactorConfig.new('./conf/10-base.yml')

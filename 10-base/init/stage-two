@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-# Symlink the 12factor directory for convenience
-ln -nfs "/var/run/12factor" "/12factor"
-
 # Execute each initialization cloud-config or script in alphabetical order
 find "/12factor/init.d" -type f | sort | while read file; do
   if [[ "$file" == *.yml ]]; then

@@ -5,22 +5,18 @@ set -e
 DOCKER_IMAGE_NAME="${1:-$DOCKER_IMAGE_NAME}"
 
 # Extract the individual values based on whether we have an image name of description
-if ! [ -z "${DOCKER_IMAGE_NAME}" ]; then
-  # ex. "tenstartups/coreos-12factor-init:latest"
-  IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
-  image_tag=${image_tag:-latest}
-  image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
-elif ! [ -z "${DOCKER_IMAGE_DESC}" ]; then
-  # ex. "tenstartups/coreos-12factor-init  latest  fa6ac343e5c1  About an hour ago  10.17 MB"
-  repository=$(echo "${DOCKER_IMAGE_DESC}" | awk '{ print $1 }')
-  image_tag=$(echo "${DOCKER_IMAGE_DESC}" | awk '{ print $2 }')
-  image_id=$(echo "${DOCKER_IMAGE_DESC}" | awk '{ print $3 }')
-else
-  echo "You must provide either DOCKER_IMAGE_NAME or DOCKER_IMAGE_DESC envrionment variable."
+if [ -z "${DOCKER_IMAGE_NAME}" ]; then
+  >&2 echo "You must provide DOCKER_IMAGE_NAME as an envrionment variable or the first argument to this script."
   exit 1
 fi
 
-# Update the docker image name
+# Parse the image name into its parts
+# ex. "tenstartups/coreos-12factor-init:latest"
+IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
+image_tag=${image_tag:-latest}
+image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+
+# Update the docker image name to include tag if it didn't have it
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
 
 # Extract the private registry host and normalize the repository name
