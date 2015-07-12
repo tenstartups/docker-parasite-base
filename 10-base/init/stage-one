@@ -1,6 +1,11 @@
 #!/bin/bash
 set -e
 
+# This is the first stage initialization and is reponsible for creating directories,
+# files, links and setting up any required environment first in preparation for
+# second stage initialization.  This stage should NOT perform anything complicated
+# such as docker operations.
+
 # Symlink the 12factor directory for convenience
 ln -nfs "/var/run/12factor" "/12factor"
 

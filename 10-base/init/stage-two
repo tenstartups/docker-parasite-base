@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# This is the second stage initialization and is responsible for bringing up the
+# application from scrach, which includes downloading required docker images and
+# running services.  The second stage is divided into separate configs and/or
+# scripts located in the init.d directory, which are executed in alphabetical
+# order serially.  Note however that cloud-config yml initializers are spawned
+# in parallel and cannot be guaranteed to run in order.
+
 # Execute each initialization cloud-config or script in alphabetical order
 find "/12factor/init.d" -type f | sort | while read file; do
   if [[ "$file" == *.yml ]]; then
