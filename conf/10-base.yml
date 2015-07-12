@@ -1,37 +1,37 @@
 ---
-files:
+write_files:
 
   # Environment files
 <% Dir['./10-base/env.d/*.env'].each do |file| %>
   - path: /12factor/env.d/<%= File.basename(file) %>
     permissions: '0644'
-    source: ./10-base/env.d/<%= File.basename(file) %>
+    source: <%= file %>
 <% end %>
 
   # Initialization scripts
 <% Dir['./10-base/init/*'].each do |file| %>
   - path: /12factor/init/<%= File.basename(file) %>
     permissions: '0755'
-    source: ./10-base/init/<%= File.basename(file) %>
+    source: <%= file %>
 <% end %>
 
 # Initialization parts
 <% Dir['./10-base/init.d/*.sh'].each do |file| %>
   - path: /12factor/init.d/<%= File.basename(file) %>
     permissions: '0755'
-    source: ./10-base/init.d/<%= File.basename(file) %>
+    source: <%= file %>
 <% end %>
 
   # Script files
 <% Dir['./10-base/script/*.sh'].each do |file| %>
   - path: /12factor/script/<%= File.basename(file) %>
     permissions: '0755'
-    source: ./10-base/script/<%= File.basename(file) %>
+    source: <%= file %>
 <% end %>
 
   # Systemd unit files
-<% Dir['./10-base/unit/*.{path,service,timer}'].each do |file| %>
-  - path: /12factor/unit/<%= File.basename(file) %>
+<% Dir['./10-base/systemd/*.{path,service,timer}'].each do |file| %>
+  - path: /12factor/systemd/<%= File.basename(file) %>
     permissions: '0644'
-    source: ./10-base/unit/<%= File.basename(file) %>
+    source: <%= file %>
 <% end %>

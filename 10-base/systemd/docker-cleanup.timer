@@ -2,6 +2,7 @@
 Description=Docker container and image cleanup timer
 
 [Timer]
-OnBootSec=15min
+EnvironmentFile=/12factor/env/systemd.env
+OnBootSec=5min
 OnCalendar=hourly
 Unit=docker-cleanup.service

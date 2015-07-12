@@ -6,7 +6,7 @@ DOCKER_IMAGE_NAME="${1:-$DOCKER_IMAGE_NAME}"
 
 # Extract the individual values based on whether we have an image name of description
 if [ -z "${DOCKER_IMAGE_NAME}" ]; then
-  >&2 echo "You must provide DOCKER_IMAGE_NAME as an envrionment variable or the first argument to this script."
+  echo >&2 "You must provide DOCKER_IMAGE_NAME as an envrionment variable or the first argument to this script."
   exit 1
 fi
 

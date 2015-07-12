@@ -3,11 +3,16 @@ set -e
 
 # Set environment with defaults
 NRSYSMOND_ARCH=${NRSYSMOND_ARCH:-x64}
+NRSYSMOND_CONFIG_FILE="${NRSYSMOND_CONFIG_FILE:-/12factor/conf/newrelic/newrelic-sysmond.conf}"
 NRSYSMOND_PID_FILE="${NRSYSMOND_PID_FILE:-/var/run/nrsysmond.pid}"
 NRSYSMOND_LOG_FILE="${NRSYSMOND_LOG_FILE:-/var/log/nrsysmond.log}"
 NRSYSMOND_LOG_LEVEL=${NRSYSMOND_LOG_LEVEL:-warning}
-NRSYSMOND_CONFIG_FILE="${NRSYSMOND_CONFIG_FILE:-/12factor/conf/newrelic-sysmond.conf}"
-NEWRELIC_LICENSE_KEY="${NEWRELIC_LICENSE_KEY:-GET_ONE_FROM_NEWRELIC}"
+
+# Check for required environment variables
+if [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
+  echo >&2 "Missing required environment variable NEWRELIC_LICENSE_KEY"
+  exit 1
+fi
 
 # Download and install the latest nrsysmond agent
 tempdir="$(mktemp -d)"

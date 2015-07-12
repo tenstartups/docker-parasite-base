@@ -9,7 +9,10 @@ StartLimitInterval=30s
 StartLimitBurst=5
 EnvironmentFile=/12factor/env/systemd.env
 Environment=SERVICE_NAME=newrelic-sysmond
+Environment=NRSYSMOND_ARCH=x64
+Environment=NRSYSMOND_CONFIG_FILE=/12factor/conf/newrelic/newrelic-sysmond.conf
 Environment=NRSYSMOND_PID_FILE=/var/run/nrsysmond.pid
+Environment=NRSYSMOND_LOG_FILE=/var/log/nrsysmond.log
 ExecStartPre=-/12factor/bin/send-notification warn "Starting `${SERVICE_NAME}` service"
 ExecStartPre=/12factor/bin/init-newrelic-sysmond
 ExecStart=/12factor/bin/nrsysmond -f -n %H -c "${NRSYSMOND_CONFIG_FILE}"

@@ -8,7 +8,7 @@ MAX_CHECKS=${MAX_CHECKS:-5}
 
 # Exit with error if required environment is not present
 if [ -z "${DOCKER_CONTAINER_NAME}" ]; then
-  echo "Environment variable DOCKER_CONTAINER_NAME must be provided"
+  echo >&2 "Environment variable DOCKER_CONTAINER_NAME must be provided"
   exit 1
 fi
 
@@ -33,7 +33,7 @@ if [ "${CONTAINER_RUNNING}" = "true" ]; then
   /12factor/bin/send-notification success "Container \`${DOCKER_CONTAINER_NAME}\` is running after $T seconds."
   exit 0
 else
-  echo "Container ${DOCKER_CONTAINER_NAME} is NOT running after $T seconds."
+  echo >&2 "Container ${DOCKER_CONTAINER_NAME} is NOT running after $T seconds."
   /12factor/bin/send-notification error "Container \`${DOCKER_CONTAINER_NAME}\` is NOT running after $T seconds."
   exit 1
 fi

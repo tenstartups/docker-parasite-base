@@ -2,14 +2,14 @@
 
 require 'erb'
 require 'fileutils'
-require 'ostruct'
+require 'open_struct_ext'
 require 'yaml'
 
 class TwelveFactorConfig
 
   def initialize(config_file, options = {})
 
-    bindings = OpenStruct.new(options)
+    bindings = OpenStructExt.new(options)
 
     # Process the yml configuration through erb
     template = open(config_file, 'r') { |f| f.read }
@@ -17,7 +17,7 @@ class TwelveFactorConfig
     config = YAML.load(yaml)
 
     # Process each file specified
-    config['files'].each do |file|
+    config['write_files'].each do |file|
 
       # Check for required arguments
       unless file['path'] && file['path'].length > 0

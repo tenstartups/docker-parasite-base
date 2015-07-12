@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
 
-find "./entrypoint.d" -type f | sort | while read f; do "$f"; done
+find "./deploy.d" -type f | sort | while read f; do "$f"; done
 
 "$@"

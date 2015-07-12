@@ -8,6 +8,26 @@ set -e
 # order serially.  Note however that cloud-config yml initializers are spawned
 # in parallel and cannot be guaranteed to run in order.
 
+# Pre-pull all docker images at the start to ensure a smoother initialization
+echo "Pre-pulling all required docker images"
+systemctl start docker-check-image-update.service
+echo "Finished pre-pulling all required docker images"
+
+# Notify that we started
+/12factor/bin/send-notification warn "Starting \`twelve-factor\` initialization"
+
+# Start base systemd services and wait
+if ! [ -z "${SWAP_FILE_SIZE}" ]; then
+  systemctl start swapfile.service &
+fi
+if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
+  systemctl start newrelic-sysmond.service &
+fi
+systemctl start tools-install.service &
+systemctl start docker-check-image-update.timer &
+systemctl start docker-cleanup.timer &
+wait
+
 # Execute each initialization cloud-config or script in alphabetical order
 find "/12factor/init.d" -type f | sort | while read file; do
   if [[ "$file" == *.yml ]]; then
@@ -19,3 +39,14 @@ find "/12factor/init.d" -type f | sort | while read file; do
     "$file"
   fi
 done
+
+# Start application autostart systemd services and wait
+find "/12factor/systemd/start" -type f | sort | while read file; do
+  systemctl start "`basename $file`" &
+done
+wait
+
+# Notify that we finished
+/12factor/bin/send-notification success "Finished \`twelve-factor\` initialization"
+
+exit 0

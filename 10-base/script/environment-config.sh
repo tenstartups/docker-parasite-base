@@ -8,10 +8,10 @@ ENVIRONMENT_REGEX="^\s*([^#][^=]+)[=](.+)$"
 
 # Wait until docker0 is up and get its ip address
 IP_COMMAND="ip addr show docker0 | sed -En 's/^\s*inet\s+(([0-9]{1,3}\.){3}[0-9]{1,3})\/[0-9]+\s+scope\s+global\s+docker0\s*$/\1/p'"
-DOCKER_HOST_IP=$(eval $IP_COMMAND) || true
-until [[ ${DOCKER_HOST_IP} =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]; do
+DOCKER0_IP_ADDRESS=$(eval $IP_COMMAND) || true
+until [[ ${DOCKER0_IP_ADDRESS} =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]; do
   sleep 1
-  DOCKER_HOST_IP=$(eval $IP_COMMAND) || true
+  DOCKER0_IP_ADDRESS=$(eval $IP_COMMAND) || true
 done
 
 # Create directories
@@ -21,7 +21,7 @@ mkdir -p "/etc/profile.d"
 
 # Build a combined environment file for use in docker containers
 cat << EOF > "${ENV_TARGET_DIR}/docker.env.tmp"
-DOCKER_HOST_IP=${DOCKER_HOST_IP}
+DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=$(hostname)
 EOF
 find "${ENV_SOURCE_DIR}" -type f -name '*.env' -exec sh -c "cat '{}' >> '${ENV_TARGET_DIR}/docker.env.tmp'" \;
@@ -34,7 +34,7 @@ cat "${ENV_TARGET_DIR}/docker.env.tmp" | grep . | sort >> "${ENV_TARGET_DIR}/doc
 # Build a combined environment file for use in systemd services
 cat << EOF > "${ENV_TARGET_DIR}/systemd.env.tmp"
 PATH=${PATH}:/12factor/bin
-DOCKER_HOST_IP=${DOCKER_HOST_IP}
+DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=$(hostname)
 EOF
 find "${ENV_SOURCE_DIR}" -type f -name '*.env' -exec sh -c "cat '{}' >> '${ENV_TARGET_DIR}/systemd.env.tmp'" \;
