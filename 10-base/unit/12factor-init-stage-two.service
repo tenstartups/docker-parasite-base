@@ -1,7 +1,7 @@
 [Unit]
 Description=CoreOS twelve-factor stage two initialization
 Requires=systemd-networkd.service docker.service 12factor-init-stage-one.service
-After=systemd-networkd.service docker.service 12factor-init-stage-one.service
+After=systemd-networkd.service docker.service
 
 [Service]
 Type=oneshot
