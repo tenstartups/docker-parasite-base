@@ -20,7 +20,7 @@ WORKDIR "/home/12factor"
 ADD . /home/12factor
 
 # Define volumes.
-VOLUME ["/home/12factor"]
+VOLUME ["/12factor"]
 
 # Set the entrypoint script.
 ENTRYPOINT ["/home/12factor/entrypoint"]
