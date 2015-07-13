@@ -19,7 +19,6 @@ mkdir -p "/12factor/init"
 mkdir -p "/12factor/init.d"
 mkdir -p "/12factor/script"
 mkdir -p "/12factor/systemd"
-mkdir -p "/12factor/systemd/start"
 
 # Create a data directory and link it into the 12factor directory
 mkdir -p "/data"

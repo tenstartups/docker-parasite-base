@@ -29,9 +29,9 @@ write_files:
     source: <%= file %>
 <% end %>
 
-  # Systemd unit files
+systemd_units:
+
 <% Dir['./10-base/systemd/*.{path,service,timer}'].each do |file| %>
-  - path: /12factor/systemd/<%= File.basename(file) %>
-    permissions: '0644'
+  - name: <%= File.basename(file) %>
     source: <%= file %>
 <% end %>

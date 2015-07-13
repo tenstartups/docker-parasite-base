@@ -29,7 +29,7 @@ systemctl start docker-cleanup.timer &
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order
-find "/12factor/init.d" -type f | sort | while read file; do
+find "/12factor/init.d" -type f | sort | uniq | while read file; do
   if [[ "$file" == *.yml ]]; then
     echo "Executing twelve-factor initialization cloud-config $file..."
     coreos-cloudinit --from-file="$file"
@@ -40,11 +40,13 @@ find "/12factor/init.d" -type f | sort | while read file; do
   fi
 done
 
-# Start application autostart systemd services and wait
-find "/12factor/systemd/start" -type f | sort | while read file; do
-  systemctl start "`basename $file`" &
-done
-wait
+# Start services listed in the systemd start file
+if [ -f "/12factor/systemd/start" ]; then
+  cat "/12factor/systemd/start" | sort | while read unit; do
+    systemctl start $unit &
+  done
+  wait
+fi
 
 # Notify that we finished
 /12factor/bin/send-notification success "Finished \`twelve-factor\` initialization"
