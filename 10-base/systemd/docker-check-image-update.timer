@@ -3,6 +3,6 @@ Description=Docker check image update timer
 
 [Timer]
 EnvironmentFile=/12factor/env/systemd.env
-OnBootSec=5min
+OnBootSec=15min
 OnUnitInactiveSec=2min
 Unit=docker-check-image-update.service
