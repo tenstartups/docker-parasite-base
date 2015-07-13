@@ -18,6 +18,7 @@ mkdir -p "/12factor/env.d"
 mkdir -p "/12factor/init"
 mkdir -p "/12factor/init.d"
 mkdir -p "/12factor/script"
+mkdir -p "/12factor/tools.d"
 mkdir -p "/12factor/systemd"
 
 # Create a data directory and link it into the 12factor directory
@@ -38,6 +39,9 @@ ln -fsv "/12factor/auth/docker.yml" "/home/core/.dockercfg"
 find "/12factor/script" -type f -iname "*.sh" | while read f; do
   ln -fsv "$f" "/12factor/bin/`basename ${f%.sh}`"
 done
+
+# Move the stage 2 init service directly to the systemd run directory
+mv -fv "/12factor/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
 
 # Create symlinks for all systemd units in the systemd directory
 find "/12factor/systemd" -type f | while read f; do

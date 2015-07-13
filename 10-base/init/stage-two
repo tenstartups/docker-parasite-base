@@ -23,9 +23,6 @@ fi
 if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
   systemctl start newrelic-sysmond.service &
 fi
-systemctl start tools-install.service &
-systemctl start docker-check-image-update.timer &
-systemctl start docker-cleanup.timer &
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order
