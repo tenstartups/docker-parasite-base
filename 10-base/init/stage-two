@@ -23,6 +23,7 @@ fi
 if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
   systemctl start newrelic-sysmond.service &
 fi
+systemctl start install-tools.service &
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order

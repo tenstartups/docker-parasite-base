@@ -55,5 +55,4 @@ systemd_units:
   - name: swapfile.service
     source: ./10-base/systemd/swapfile.service
   - name: install-tools.service
-    start: true
     source: ./10-base/systemd/install-tools.service
