@@ -13,6 +13,11 @@ ENV \
   HOME=/home/12factor \
   RUBYLIB=/home/12factor/lib
 
+# Install packages.
+RUN \
+  apk --update add git && \
+  rm /var/cache/apk/*
+
 # Set the working directory.
 WORKDIR "/home/12factor"
 
