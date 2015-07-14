@@ -27,3 +27,9 @@ ENTRYPOINT ["/home/12factor/entrypoint"]
 
 # Set the default command
 CMD ["/bin/bash"]
+
+# Dump out the git revision.
+ONBUILD RUN \
+  mkdir -p ./.git/objects && \
+  echo "$(git rev-parse HEAD)" > ./REVISION && \
+  rm -rf ./.git
