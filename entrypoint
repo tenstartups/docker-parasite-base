@@ -1,6 +1,10 @@
 #!/bin/bash
 set -e
 
+# Clear out any existing content
+rm -rf "/12factor/*"
+
+# Execute each deploy script in order
 find "./deploy.d" -type f | sort | while read f; do "$f"; done
 
 "$@"
