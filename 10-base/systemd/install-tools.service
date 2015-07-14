@@ -6,7 +6,6 @@ Type=oneshot
 User=core
 WorkingDirectory=/home/core
 EnvironmentFile=/12factor/env/systemd.env
-Environment=SERVICE_NAME=tools-install
-ExecStartPre=-/12factor/bin/send-notification warn "Starting `${SERVICE_NAME}` service"
+ExecStartPre=-/12factor/bin/send-notification warn "Starting `%n`"
 ExecStart=/12factor/bin/coreos-install-tools
-ExecStartPost=-/12factor/bin/send-notification success "Finished `${SERVICE_NAME}` service"
+ExecStartPost=-/12factor/bin/send-notification success "Finished `%n`"
