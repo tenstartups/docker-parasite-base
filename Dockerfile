@@ -33,6 +33,9 @@ ENTRYPOINT ["/home/12factor/entrypoint"]
 # Set the default command
 CMD ["/bin/bash"]
 
+# Add files to the container.
+ONBUILD ADD . /home/12factor
+
 # Dump out the git revision.
 ONBUILD RUN \
   mkdir -p ./.git/objects && \
