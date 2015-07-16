@@ -2,7 +2,7 @@
 Description=Docker container and image cleanup service
 
 [Service]
-User=core
+User=root
 Type=oneshot
 EnvironmentFile=/12factor/env/systemd.env
 ExecStart=/12factor/bin/docker-cleanup

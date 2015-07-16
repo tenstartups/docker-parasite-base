@@ -1,10 +1,21 @@
 #!/bin/bash
 set -e
 
-# Clear out any existing content
-rm -rf "/12factor/*"
-
-# Execute each deploy script in order
-find "./deploy.d" -type f | sort | while read f; do "$f"; done
+# Look for known command aliases
+case "$1" in
+  "init" )
+    shift
+    # Execute each deploy script in order
+    find "./deploy.d" -type f | sort | while read f; do MODE=init "$f"; done
+    ;;
+  "conf" )
+    shift
+    # Execute each deploy script in order
+    find "./deploy.d" -type f | sort | while read f; do MODE=conf "$f"; done
+    ;;
+  * )
+    "$@"
+    ;;
+esac
 
 "$@"

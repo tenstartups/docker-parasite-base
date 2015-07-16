@@ -2,7 +2,7 @@
 Description=CoreOS tools installation service
 
 [Service]
-User=core
+User=root
 Type=oneshot
 WorkingDirectory=/home/core
 EnvironmentFile=/12factor/env/systemd.env

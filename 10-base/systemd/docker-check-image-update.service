@@ -2,7 +2,7 @@
 Description=Docker check image update service
 
 [Service]
-User=core
+User=root
 Type=oneshot
 EnvironmentFile=/12factor/env/systemd.env
 ExecStart=/12factor/bin/docker-check-pull-all
