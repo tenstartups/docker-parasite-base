@@ -28,8 +28,10 @@ cat << EOF > "${ENV_TARGET_DIR}/docker.env"
 EOF
 temp_file="$(mktemp)"
 cat << EOF > "$temp_file"
-DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
+DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
+HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
+HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
 env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.docker.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep . | sort >> "${ENV_TARGET_DIR}/docker.env"
@@ -42,8 +44,10 @@ cat << EOF > "${ENV_TARGET_DIR}/systemd.env"
 EOF
 temp_file="$(mktemp)"
 cat << EOF > "$temp_file"
-DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
+DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
+HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
+HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
 env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.systemd.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep . | sort >> "${ENV_TARGET_DIR}/systemd.env"
@@ -58,8 +62,10 @@ EOF
 temp_file="$(mktemp)"
 cat << EOF > "$temp_file"
 PATH=\$PATH:/12factor/bin
-DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
+DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
+HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
+HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
 env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.profile.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep . | sort | sed -En "s/${ENVIRONMENT_REGEX}/export \1=\"\2\"/p" >> "${ENV_TARGET_DIR}/profile.sh"

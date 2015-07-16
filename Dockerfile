@@ -1,7 +1,7 @@
 #
-# CoreOS twelve-factor application initialization and configuration docker image
+# CoreOS twelve-factor application initialization and configuration base docker image
 #
-# http://github.com/tenstartups/coreos-12factor-init-docker
+# http://github.com/tenstartups/coreos-12factor-base-docker
 #
 
 FROM tenstartups/alpine-ruby:latest

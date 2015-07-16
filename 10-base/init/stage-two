@@ -16,14 +16,28 @@ echo "Finished pre-pulling all required docker images"
 # Notify that we started
 /12factor/bin/send-notification warn "Starting \`twelve-factor\` initialization"
 
+# Create the twelve-factor configuration data volume container
+if ! [ -z "${DOCKER_CONTAINER_12FACTOR_CONFIG}" ] && ! [ -z "${DOCKER_IMAGE_COREOS_12FACTOR}" ]; then
+  /12factor/bin/docker-check-remove ${DOCKER_CONTAINER_12FACTOR_CONFIG}
+  /usr/bin/docker run \
+    -e VM_HOSTNAME=$(hostname) \
+    --label data \
+    --name ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
+    ${DOCKER_IMAGE_COREOS_12FACTOR} \
+    conf
+fi
+
 # Start base systemd services and wait
+systemctl start install-tools.service &
 if ! [ -z "${SWAP_FILE_SIZE}" ]; then
   systemctl start swapfile.service &
 fi
 if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
   systemctl start newrelic-sysmond.service &
 fi
-systemctl start install-tools.service &
+if ! [ -z "${ETCD_DISCOVERY_URL}" ]; then
+  systemctl start etcdd.service &
+fi
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order

@@ -40,19 +40,21 @@ systemd_units:
 
   - name: 12factor-init-stage-two.service
     source: ./10-base/systemd/12factor-init-stage-two.service
-  - name: docker-check-image-update.service
-    source: ./10-base/systemd/docker-check-image-update.service
+  - name: install-tools.service
+    source: ./10-base/systemd/install-tools.service
+  - name: swapfile.service
+    source: ./10-base/systemd/swapfile.service
+  - name: newrelic-sysmond.service
+    source: ./10-base/systemd/newrelic-sysmond.service
+  - name: etcdd.service
+    source: ./10-base/systemd/etcdd.service
   - name: docker-check-image-update.timer
     start: true
     source: ./10-base/systemd/docker-check-image-update.timer
-  - name: docker-cleanup.service
-    source: ./10-base/systemd/docker-cleanup.service
+  - name: docker-check-image-update.service
+    source: ./10-base/systemd/docker-check-image-update.service
   - name: docker-cleanup.timer
     start: true
     source: ./10-base/systemd/docker-cleanup.timer
-  - name: newrelic-sysmond.service
-    source: ./10-base/systemd/newrelic-sysmond.service
-  - name: swapfile.service
-    source: ./10-base/systemd/swapfile.service
-  - name: install-tools.service
-    source: ./10-base/systemd/install-tools.service
+  - name: docker-cleanup.service
+    source: ./10-base/systemd/docker-cleanup.service
