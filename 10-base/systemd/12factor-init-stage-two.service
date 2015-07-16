@@ -4,6 +4,7 @@ Requires=12factor-init-stage-one.service
 After=12factor-init-stage-one.service
 
 [Service]
+User=core
 Type=oneshot
 RemainAfterExit=true
 EnvironmentFile=/12factor/env/systemd.env

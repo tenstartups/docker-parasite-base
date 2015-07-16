@@ -35,7 +35,7 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-auth_token=$(cat "/12factor/auth/docker.yml" | "/12factor/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
+auth_token=$(cat "/home/core/.dockercfg" | "/12factor/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
@@ -71,9 +71,10 @@ if [ "$pull_image" = "true" ]; then
 
     # Generate a filename to dump the image id to on update, which can be used to
     # trigger actions on image changes
-    image_id_file="/data/docker/ids/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}"
+    image_id_file="/data/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
 
     # Dump the image id atomically to file
+    mkdir -p "$(dirname $image_id_file)"
     printf $remote_image_id > "$image_id_file.tmp"
     rsync --remove-source-files --checksum --chmod=a+rw "$image_id_file.tmp" "$image_id_file"
 

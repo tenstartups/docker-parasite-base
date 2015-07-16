@@ -2,8 +2,8 @@
 Description=CoreOS tools installation service
 
 [Service]
-Type=oneshot
 User=core
+Type=oneshot
 WorkingDirectory=/home/core
 EnvironmentFile=/12factor/env/systemd.env
 ExecStartPre=-/12factor/bin/send-notification warn "Starting `%n`"
