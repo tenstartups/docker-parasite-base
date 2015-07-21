@@ -37,6 +37,7 @@ if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
 fi
 if ! [ -z "${ETCD_DISCOVERY_URL}" ]; then
   systemctl start etcdd.service &
+  systemctl start etcd2env.service &
 fi
 wait
 
