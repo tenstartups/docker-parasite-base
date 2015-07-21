@@ -14,8 +14,8 @@ until [[ ${DOCKER0_IP_ADDRESS} =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}
   sleep 1
   DOCKER0_IP_ADDRESS=$(eval $IP_COMMAND) || true
 done
-DOCKER_HOSTNAME=$(hostname --short 2>/dev/null || hostname)
-DOCKER_HOSTNAME_FULL=$(hostname --long 2>/dev/null || hostname)
+DOCKER_HOSTNAME_FULL=$(hostname) # This assumes that /etc/hostname has the FQDN
+DOCKER_HOSTNAME=$(IFS=. read host domain <<<"${DOCKER_HOSTNAME_FULL}" && echo ${host})
 
 # Create directories
 mkdir -p "${ENV_SOURCE_DIR}"
