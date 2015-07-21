@@ -20,8 +20,8 @@ echo "Finished pre-pulling all required docker images"
 if ! [ -z "${DOCKER_CONTAINER_12FACTOR_CONFIG}" ] && ! [ -z "${DOCKER_IMAGE_COREOS_12FACTOR}" ]; then
   /12factor/bin/docker-check-remove ${DOCKER_CONTAINER_12FACTOR_CONFIG}
   /usr/bin/docker run \
-    -e VM_HOSTNAME=${DOCKER_HOSTNAME} \
     --label data \
+    --hostname ${DOCKER_HOSTNAME} \
     --name ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
     ${DOCKER_IMAGE_COREOS_12FACTOR} \
     conf
