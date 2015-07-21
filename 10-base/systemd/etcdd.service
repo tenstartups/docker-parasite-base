@@ -9,7 +9,6 @@ TimeoutStartSec=300
 TimeoutStopSec=30
 EnvironmentFile=/12factor/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
-ExecStartPre=/usr/bin/sh -c "/usr/bin/systemctl set-environment DOCKER_CONTAINER_HOSTNAME_ETCD=$(echo '%n' | sed 's/\\.service//').${DOCKER_HOSTNAME}"
 ExecStartPre=-/12factor/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
 ExecStartPre=-/12factor/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
 ExecStartPre=-/12factor/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
@@ -21,7 +20,7 @@ ExecStart=/usr/bin/docker run \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   -v /data/etcd:/var/lib/etcd \
-  --hostname ${DOCKER_CONTAINER_HOSTNAME_ETCD} \
+  --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_ETCD} \
     --data-dir /var/lib/etcd \

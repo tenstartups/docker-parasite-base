@@ -30,7 +30,7 @@ find "/12factor/script" -type f -iname "*.sh" | while read f; do
 done
 
 # Move the stage 2 init service directly to the systemd run directory
-if -f [ "/12factor/systemd/12factor-init-stage-two.service" ]; then
+if [ -f "/12factor/systemd/12factor-init-stage-two.service" ]; then
   mv -fv "/12factor/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
 fi
 

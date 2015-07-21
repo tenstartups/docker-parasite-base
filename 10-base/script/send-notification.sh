@@ -17,7 +17,7 @@ if [ -z "${FILE_ATTACHMENT}" ]; then
     --env-file="/12factor/env/docker.env" \
     -e LOGSPOUT=ignore \
     -e MESSAGE="${MESSAGE}" \
-    --hostname=notifier.$(hostname) \
+    --hostname=notifier.${DOCKER_HOSTNAME_FULL} \
     ${DOCKER_IMAGE_NOTIFIER} \
     "$@"
 else
@@ -27,7 +27,7 @@ else
     -e LOGSPOUT=ignore \
     -e MESSAGE="${MESSAGE}" \
     -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \
-    --hostname=notifier.$(hostname) \
+    --hostname=notifier.${DOCKER_HOSTNAME_FULL} \
     ${DOCKER_IMAGE_NOTIFIER} \
     "$@"
 fi
