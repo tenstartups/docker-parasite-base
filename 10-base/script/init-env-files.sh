@@ -68,6 +68,6 @@ HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
 env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.profile.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
-cat $temp_file $env_files | grep . | sort | sed -En "s/${ENVIRONMENT_REGEX}/export \1=\"\2\"/p" >> "${ENV_TARGET_DIR}/profile.sh"
+cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort | sed -En "s/${ENVIRONMENT_REGEX}/export \1=\"\2\"/p" >> "${ENV_TARGET_DIR}/profile.sh"
 rm -f $temp_file
 ln -fs "${ENV_TARGET_DIR}/profile.sh" "${PROFILE_DIR}/12factor-env.sh"

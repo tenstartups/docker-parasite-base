@@ -30,7 +30,9 @@ find "/12factor/script" -type f -iname "*.sh" | while read f; do
 done
 
 # Move the stage 2 init service directly to the systemd run directory
-mv -fv "/12factor/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
+if -f [ "/12factor/systemd/12factor-init-stage-two.service" ]; then
+  mv -fv "/12factor/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
+fi
 
 # Create symlinks for all systemd units in the systemd directory
 find "/12factor/systemd" -type f | while read f; do
@@ -42,7 +44,7 @@ systemctl daemon-reload
 
 # Run the environment configuration script to generate consolidated environment
 # files for use in systemd services and docker containers
-/12factor/bin/environment-config
+/12factor/bin/init-env-files
 
 # Start the stage two initialization and exit
 systemctl start 12factor-init-stage-two &

@@ -28,7 +28,7 @@ ADD . /home/12factor
 VOLUME ["/12factor"]
 
 # Set the entrypoint script.
-ENTRYPOINT ["/home/12factor/entrypoint"]
+ENTRYPOINT ["./entrypoint"]
 
 # Set the default command
 CMD ["/bin/bash"]
