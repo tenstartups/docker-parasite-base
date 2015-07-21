@@ -44,8 +44,8 @@ systemd_units:
     source: ./10-base/systemd/install-tools.service
   - name: swapfile.service
     source: ./10-base/systemd/swapfile.service
-  - name: newrelic-sysmond.service
-    source: ./10-base/systemd/newrelic-sysmond.service
+  - name: newrelic-agent.service
+    source: ./10-base/systemd/newrelic-agent.service
   - name: etcdd.service
     source: ./10-base/systemd/etcdd.service
   - name: etcd2env.service

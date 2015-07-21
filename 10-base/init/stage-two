@@ -33,7 +33,7 @@ if ! [ -z "${SWAP_FILE_SIZE}" ]; then
   systemctl start swapfile.service &
 fi
 if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
-  systemctl start newrelic-sysmond.service &
+  systemctl start newrelic-agent.service &
 fi
 if ! [ -z "${ETCD_DISCOVERY_URL}" ]; then
   systemctl start etcdd.service &

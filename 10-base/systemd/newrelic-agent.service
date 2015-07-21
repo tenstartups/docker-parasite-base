@@ -20,6 +20,7 @@ ExecStart=/usr/bin/docker run \
   -e NEW_RELIC_LICENSE_KEY=${NEWRELIC_LICENSE_KEY} \
   --pid host \
   --net host \
+  --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_NEWRELIC_AGENT}
 ExecStartPost=/12factor/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
 ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}
