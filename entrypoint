@@ -10,9 +10,9 @@ case "${COMMAND}" in
     shift
     # Execute each deploy script in order
     find "./deploy.d" -type f | sort | while read f; do MODE=${COMMAND} "$f"; done
-    exec "$@"
+    "$@"
     ;;
   * )
-    exec "$@"
+    "$@"
     ;;
 esac
