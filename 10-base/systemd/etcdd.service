@@ -1,5 +1,6 @@
 [Unit]
 Description=etcd shared configuration service docker
+Conflicts=etcd.service etcd2.service
 
 [Service]
 User=root
