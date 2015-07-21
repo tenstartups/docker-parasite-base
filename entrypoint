@@ -1,21 +1,18 @@
 #!/bin/bash
 set -e
 
+# Set environment
+COMMAND="$1"
+
 # Look for known command aliases
-case "$1" in
-  "init" )
+case "${COMMAND}" in
+  "init" | "conf" )
     shift
     # Execute each deploy script in order
-    find "./deploy.d" -type f | sort | while read f; do MODE=init "$f"; done
-    ;;
-  "conf" )
-    shift
-    # Execute each deploy script in order
-    find "./deploy.d" -type f | sort | while read f; do MODE=conf "$f"; done
+    find "./deploy.d" -type f | sort | while read f; do MODE=${COMMAND} "$f"; done
+    exec "$@"
     ;;
   * )
-    "$@"
+    exec "$@"
     ;;
 esac
-
-"$@"

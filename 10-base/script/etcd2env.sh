@@ -11,9 +11,9 @@ cat << EOF > "${ENV_FILE}"
 # configuration service
 EOF
 while read -r env_name etcd_variable ; do
-  env_value = /usr/bin/etcdctl get "${etcd_variable}"
+  env_value=$(/usr/bin/etcdctl get "${etcd_variable}")
   if [ -z "${env_value}" ]; then
-    echo 2>& "Unable to load ${etcd_variable} variable from etcd."
+    echo >&2 "Unable to load ${etcd_variable} variable from etcd."
     exit 1
   fi
   echo "${env_name}=${env_value}" >> "${ENV_FILE}"

@@ -9,19 +9,19 @@ class TwelveFactorConfig
 
   def initialize(config_file, options = {})
 
-    bindings = OpenStructExt.new(options)
+    @bindings = OpenStructExt.new(options)
+    @mode = options[:mode]
 
     # Process the yml configuration through erb
     template = open(config_file, 'r') { |f| f.read }
-    yaml = ERB.new(template).result(bindings.instance_eval { binding })
+    yaml = ERB.new(template).result(@bindings.instance_eval { binding })
     config = YAML.load(yaml)
 
     # Process each file specified
     config['write_files'].each do |file|
-
       # Check for required arguments
       unless file['path'] && file['path'].length > 0
-        STDERR.puts "Mandatory file path not specified."
+        STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
       if File.exist?(file['path'])
@@ -29,7 +29,7 @@ class TwelveFactorConfig
         exit 1
       end
       unless file['source'] && file['source'].length > 0
-        STDERR.puts "Mandatory file source not specified."
+        STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
       unless File.exist?(file['source'])
@@ -37,30 +37,15 @@ class TwelveFactorConfig
         exit 1
       end
 
-      # Echo a message
-      puts "'#{file['source']}' -> '#{file['path']}'"
-      template = open(file['source'], 'r') { |f| f.read }
-      content = ERB.new(template).result(bindings.instance_eval { binding })
-      FileUtils.mkdir_p(File.dirname(file['path']))
-      open(file['path'], 'w') { |f| f.write(content) }
-      if file['permissions']
-        if file['permissions'] =~ /[0-7]{3,4}/
-          FileUtils.chmod(file['permissions'].to_i(8), file['path'])
-        else
-          FileUtils.chmod(file['permissions'], file['path'])
-        end
-      end
-
+      # Copy the file into place
+      copy_file(file['source'], file['path'], file['permissions'])
     end
-
-    systemd_start_file = '/12factor/systemd/start'
 
     # Process each systemd unit specified
     config['systemd_units'].each do |unit|
-
       # Check for required arguments
       unless unit['name'] && unit['name'].length > 0
-        STDERR.puts "Mandatory systemd unit name not specified."
+        STDERR.puts 'Mandatory systemd unit name not specified.'
         exit 1
       end
       if File.exist?(unit['path'] = "/12factor/systemd/#{unit['name']}")
@@ -68,7 +53,7 @@ class TwelveFactorConfig
         exit 1
       end
       unless unit['source'] && unit['source'].length > 0
-        STDERR.puts "Mandatory systemd unit source not specified."
+        STDERR.puts 'Mandatory systemd unit source not specified.'
         exit 1
       end
       unless File.exist?(unit['source'])
@@ -76,19 +61,41 @@ class TwelveFactorConfig
         exit 1
       end
 
-      # Echo a message
-      puts "'#{unit['source']}' -> '#{unit['path']}'"
-      template = open(unit['source'], 'r') { |f| f.read }
-      content = ERB.new(template).result(bindings.instance_eval { binding })
-      FileUtils.mkdir_p(File.dirname(unit['path']))
-      open(unit['path'], 'w') { |f| f.write(content) }
-      FileUtils.chmod('0644'.to_i(8), unit['path'])
-      if unit['start'] == true
-        File.open(systemd_start_file, 'a') { |f| f.puts unit['name'] }
-      end
-
+      # Copy the file into place
+      copy_file(unit['source'], unit['path'], '0644')
     end
 
+    # Create the service start file
+    config['systemd_units']
+      .select { |attrs| attrs['start'] == true }
+      .map { |attrs| attrs['name'] }
+      .each { |name| File.open('/tmp/start', 'a') { |f| f.puts name } }
+    copy_file('/tmp/start', '/12factor/systemd/start', '0644')
   end
 
+  def copy_file(source, target, permissions)
+    target_dirs = case @mode
+                  when 'init'
+                    %w( bin env env.d init init.d script systemd tools.d )
+                  when 'conf'
+                    %w( conf )
+                  else
+                    %w()
+                  end
+    if target_dirs.any? { |dir| target.start_with?("/12factor/#{dir}/") }
+      puts "'#{source}' -> '#{target}'"
+      template = open(source, 'r') { |f| f.read }
+      content = ERB.new(template).result(@bindings.instance_eval { binding })
+      FileUtils.mkdir_p(File.dirname(target))
+      open(target, 'w') { |f| f.write(content) }
+      return unless permissions
+      if permissions =~ /[0-7]{3,4}/
+        FileUtils.chmod(permissions.to_i(8), target)
+      else
+        FileUtils.chmod(permissions, target)
+      end
+    else
+      puts "skipping '#{source}'"
+    end
+  end
 end
