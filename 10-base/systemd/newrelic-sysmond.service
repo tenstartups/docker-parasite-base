@@ -1,0 +1,27 @@
+[Unit]
+Description=NewRelic system monitor agent service
+Conflicts=newrelic-agent.service
+
+[Service]
+User=root
+Restart=always
+RestartSec=10s
+TimeoutStartSec=300
+TimeoutStopSec=30
+EnvironmentFile=/12factor/env/systemd.env
+Environment=NRSYSMOND_ARCH=x64
+Environment=NRSYSMOND_CONFIG_FILE=/tmp/newrelic-sysmond.conf
+Environment=NRSYSMOND_PID_FILE=/var/run/nrsysmond.pid
+Environment=NRSYSMOND_LOG_FILE=/var/log/nrsysmond.log
+ExecStartPre=-/12factor/bin/send-notification warn "Starting `%n`"
+ExecStartPre=/12factor/bin/download-nrsysmond
+ExecStartPre=/usr/bin/sh -c 'echo "license_key = ${NEWRELIC_LICENSE_KEY}" > "${NRSYSMOND_CONFIG_FILE}"'
+ExecStart=/12factor/bin/nrsysmond -F \
+  -c "${NRSYSMOND_CONFIG_FILE}" \
+  -n "${DOCKER_HOSTNAME_FULL}" \
+  -p "${NRSYSMOND_PID_FILE}" \
+  -l "${NRSYSMOND_LOG_FILE}" \
+  -d warning
+ExecStartPost=/usr/bin/bash -c 'sleep 5; kill -0 $(cat ${NRSYSMOND_PID_FILE})'
+ExecStartPost=-/12factor/bin/send-notification success "Started `%n`"
+ExecStop=/usr/bin/bash -c 'kill $(cat ${NRSYSMOND_PID_FILE})'
