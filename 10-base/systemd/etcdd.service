@@ -17,7 +17,6 @@ ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
   -e ETCD_ELECTION_TIMEOUT=1200 \
-  -e ETCD_PEER_HEARTBEAT_INTERVAL=1000 \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   -v /data/etcd:/var/lib/etcd \
