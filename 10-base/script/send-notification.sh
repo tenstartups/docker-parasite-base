@@ -8,10 +8,8 @@ else
   export SEND_NOTIFICATION_ENTRY_COUNT=$((SEND_NOTIFICATION_ENTRY_COUNT+1))
 fi
 
-# Pull the image
-/12factor/bin/docker-check-pull "${DOCKER_IMAGE_NOTIFIER}"
-
 # Call the notifier with our without an attachment
+/12factor/bin/docker-check-pull "${DOCKER_IMAGE_NOTIFIER}"
 if [ -z "${FILE_ATTACHMENT}" ]; then
   docker run --rm \
     --env-file="/12factor/env/docker.env" \
