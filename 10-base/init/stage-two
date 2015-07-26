@@ -22,6 +22,8 @@ if ! [ -z "${DOCKER_CONTAINER_12FACTOR_CONFIG}" ] && ! [ -z "${DOCKER_IMAGE_CORE
   /usr/bin/docker run \
     --label data \
     --hostname ${DOCKER_HOSTNAME} \
+    -e STAGE=<%= get(:stage) %> \
+    -e ROLE=<%= get(:role) %> \
     --name ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
     ${DOCKER_IMAGE_COREOS_12FACTOR} \
     conf

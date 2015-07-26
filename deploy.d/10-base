@@ -1,5 +1,0 @@
-#!/usr/bin/env ruby
-require 'twelve_factor_config'
-
-# Generate the configurations
-TwelveFactorConfig.new('./conf/10-base.yml', mode: ENV['MODE'])

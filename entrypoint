@@ -1,18 +1,26 @@
-#!/bin/bash
-set -e
+#!/usr/bin/env ruby
+require 'twelve_factor_config'
 
 # Set environment
-COMMAND="$1"
+command = ARGV[0]
 
 # Look for known command aliases
-case "${COMMAND}" in
-  "init" | "conf" )
-    shift
+case command
+  when 'init', 'conf'
+    # Shift out the command from the arguments
+    ARGV.shift
+
     # Execute each deploy script in order
-    find "./deploy.d" -type f | sort | while read f; do MODE=${COMMAND} "$f"; done
-    "$@"
-    ;;
-  * )
-    "$@"
-    ;;
-esac
+    Dir['./conf.d/*.yml'].sort.each do |config|
+      options = {
+        mode: command,
+        hostname: ENV['HOSTNAME'].split('.').first,
+        stage: ENV['STAGE'],
+        role: ENV['ROLE']
+      }
+      TwelveFactorConfig.new(config, options)
+    end
+end
+
+# Execute the passed in command if provided
+exec(*ARGV) if ARGV.size > 0

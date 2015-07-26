@@ -15,62 +15,70 @@ class TwelveFactorConfig
     # Process the yml configuration through erb
     template = open(config_file, 'r') { |f| f.read }
     yaml = ERB.new(template).result(@bindings.instance_eval { binding })
-    config = YAML.load(yaml)
+    config = YAML.load(yaml) || {}
 
-    # Process each file specified
-    config['write_files'].each do |file|
-      # Check for required arguments
-      unless file['path'] && file['path'].length > 0
-        STDERR.puts 'Mandatory file path not specified.'
-        exit 1
-      end
-      if File.exist?(file['path'])
-        STDERR.puts "File path '#{file['path']}' already exists."
-        exit 1
-      end
-      unless file['source'] && file['source'].length > 0
-        STDERR.puts 'Mandatory file source not specified.'
-        exit 1
-      end
-      unless File.exist?(file['source'])
-        STDERR.puts "File source '#{file['source']}' not found."
-        exit 1
+    if (write_files = config['write_files']) && write_files.length > 0
+
+      # Process each file specified
+      write_files.each do |file|
+        # Check for required arguments
+        unless file['path'] && file['path'].length > 0
+          STDERR.puts 'Mandatory file path not specified.'
+          exit 1
+        end
+        if File.exist?(file['path'])
+          STDERR.puts "File path '#{file['path']}' already exists."
+          exit 1
+        end
+        unless file['source'] && file['source'].length > 0
+          STDERR.puts 'Mandatory file source not specified.'
+          exit 1
+        end
+        unless File.exist?(file['source'])
+          STDERR.puts "File source '#{file['source']}' not found."
+          exit 1
+        end
+
+        # Copy the file into place
+        copy_file(file['source'], file['path'], file['permissions'])
       end
 
-      # Copy the file into place
-      copy_file(file['source'], file['path'], file['permissions'])
     end
 
-    # Process each systemd unit specified
-    config['systemd_units'].each do |unit|
-      # Check for required arguments
-      unless unit['name'] && unit['name'].length > 0
-        STDERR.puts 'Mandatory systemd unit name not specified.'
-        exit 1
-      end
-      if File.exist?(unit['path'] = "/12factor/systemd/#{unit['name']}")
-        STDERR.puts "Systemd unit '#{unit['name']}' already exists."
-        exit 1
-      end
-      unless unit['source'] && unit['source'].length > 0
-        STDERR.puts 'Mandatory systemd unit source not specified.'
-        exit 1
-      end
-      unless File.exist?(unit['source'])
-        STDERR.puts "Systemd unit source '#{unit['source']}' not found."
-        exit 1
+    if (systemd_units = config['systemd_units']) && systemd_units.length > 0
+
+      # Process each systemd unit specified
+      systemd_units.each do |unit|
+        # Check for required arguments
+        unless unit['name'] && unit['name'].length > 0
+          STDERR.puts 'Mandatory systemd unit name not specified.'
+          exit 1
+        end
+        if File.exist?(unit['path'] = "/12factor/systemd/#{unit['name']}")
+          STDERR.puts "Systemd unit '#{unit['name']}' already exists."
+          exit 1
+        end
+        unless unit['source'] && unit['source'].length > 0
+          STDERR.puts 'Mandatory systemd unit source not specified.'
+          exit 1
+        end
+        unless File.exist?(unit['source'])
+          STDERR.puts "Systemd unit source '#{unit['source']}' not found."
+          exit 1
+        end
+
+        # Copy the file into place
+        copy_file(unit['source'], unit['path'], '0644')
       end
 
-      # Copy the file into place
-      copy_file(unit['source'], unit['path'], '0644')
+      # Create the service start file
+      systemd_units
+        .select { |attrs| attrs['start'] == true }
+        .map { |attrs| attrs['name'] }
+        .each { |name| File.open('/tmp/start', 'a') { |f| f.puts name } }
+      copy_file('/tmp/start', '/12factor/systemd/start', '0644')
     end
 
-    # Create the service start file
-    config['systemd_units']
-      .select { |attrs| attrs['start'] == true }
-      .map { |attrs| attrs['name'] }
-      .each { |name| File.open('/tmp/start', 'a') { |f| f.puts name } }
-    copy_file('/tmp/start', '/12factor/systemd/start', '0644')
   end
 
   def copy_file(source, target, permissions)
