@@ -11,7 +11,12 @@ ENVIRONMENT_REGEX="^\s*([^#][^=]+)[=](.+)$"
 IP_COMMAND="ip addr show docker0 | sed -En 's/^\s*inet\s+(([0-9]{1,3}\.){3}[0-9]{1,3})\/[0-9]+\s+scope\s+global\s+docker0\s*$/\1/p'"
 DOCKER0_IP_ADDRESS=$(eval $IP_COMMAND) || true
 until [[ ${DOCKER0_IP_ADDRESS} =~ [0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3} ]]; do
-  sleep 1
+  failures=$((failures+1))
+  if [ ${failures} -gt 10 ]; then
+    echo >&2 "Unable to get docker0 ip address."
+    exit 1
+  fi
+  sleep 5
   DOCKER0_IP_ADDRESS=$(eval $IP_COMMAND) || true
 done
 DOCKER_HOSTNAME_FULL=$(hostname) # This assumes that /etc/hostname has the FQDN
