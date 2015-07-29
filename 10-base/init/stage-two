@@ -18,6 +18,7 @@ echo "Finished pre-pulling all required docker images"
 
 # Create the twelve-factor configuration data volume container
 if ! [ -z "${DOCKER_CONTAINER_12FACTOR_CONFIG}" ] && ! [ -z "${DOCKER_IMAGE_COREOS_12FACTOR}" ]; then
+  /12factor/bin/docker-check-pull ${DOCKER_IMAGE_COREOS_12FACTOR}
   /12factor/bin/docker-check-remove ${DOCKER_CONTAINER_12FACTOR_CONFIG}
   /usr/bin/docker run \
     --label data \
