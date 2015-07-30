@@ -1,64 +1,64 @@
 ---
-write_files:
+host_files:
 
   # Environment files
-<% Dir['./10-base/env.d/*.env'].each do |file| %>
-  - path: /12factor/env.d/<%= File.basename(file) %>
+<% source_files(:host, 'env.d/*.env') do |relative_path| %>
+  - path: /12factor/<%= relative_path %>
     permissions: '0644'
-    source: <%= file %>
+    source: <%= relative_path %>
 <% end %>
 
   # Initialization scripts
-<% Dir['./10-base/init/*'].each do |file| %>
-  - path: /12factor/init/<%= File.basename(file) %>
+<% source_files(:host, 'init/*') do |relative_path| %>
+  - path: /12factor/<%= relative_path %>
     permissions: '0755'
-    source: <%= file %>
+    source: <%= relative_path %>
 <% end %>
 
-# Initialization parts
-<% Dir['./10-base/init.d/*.sh'].each do |file| %>
-  - path: /12factor/init.d/<%= File.basename(file) %>
+# Initialization script pieces
+<% source_files(:host, 'init.d/*.sh') do |relative_path| %>
+  - path: /12factor/<%= relative_path %>
     permissions: '0755'
-    source: <%= file %>
-<% end %>
-
-  # Script files
-<% Dir['./10-base/script/*.sh'].each do |file| %>
-  - path: /12factor/script/<%= File.basename(file) %>
-    permissions: '0755'
-    source: <%= file %>
+    source: <%= relative_path %>
 <% end %>
 
   # Script files
-<% Dir['./10-base/tools.d/*.sh'].each do |file| %>
-  - path: /12factor/tools.d/<%= File.basename(file) %>
+<% source_files(:host, 'script/*.sh') do |relative_path| %>
+  - path: /12factor/<%= relative_path %>
     permissions: '0755'
-    source: <%= file %>
+    source: <%= relative_path %>
+<% end %>
+
+  # Tools installation scripts
+<% source_files(:host, 'tools.d/*.sh') do |relative_path| %>
+  - path: /12factor/<%= relative_path %>
+    permissions: '0755'
+    source: <%= relative_path %>
 <% end %>
 
 systemd_units:
 
   - name: 12factor-init-stage-two.service
-    source: ./10-base/systemd/12factor-init-stage-two.service
+    source: systemd/12factor-init-stage-two.service
   - name: install-tools.service
-    source: ./10-base/systemd/install-tools.service
+    source: systemd/install-tools.service
   - name: swapfile.service
-    source: ./10-base/systemd/swapfile.service
+    source: systemd/swapfile.service
   - name: newrelic-agent.service
-    source: ./10-base/systemd/newrelic-agent.service
+    source: systemd/newrelic-agent.service
   - name: newrelic-sysmond.service
-    source: ./10-base/systemd/newrelic-sysmond.service
+    source: systemd/newrelic-sysmond.service
   - name: etcdd.service
-    source: ./10-base/systemd/etcdd.service
+    source: systemd/etcdd.service
   - name: etcd2env.service
-    source: ./10-base/systemd/etcd2env.service
+    source: systemd/etcd2env.service
   - name: docker-check-image-update.timer
     start: true
-    source: ./10-base/systemd/docker-check-image-update.timer
+    source: systemd/docker-check-image-update.timer
   - name: docker-check-image-update.service
-    source: ./10-base/systemd/docker-check-image-update.service
+    source: systemd/docker-check-image-update.service
   - name: docker-cleanup.timer
     start: true
-    source: ./10-base/systemd/docker-cleanup.timer
+    source: systemd/docker-cleanup.timer
   - name: docker-cleanup.service
-    source: ./10-base/systemd/docker-cleanup.service
+    source: systemd/docker-cleanup.service

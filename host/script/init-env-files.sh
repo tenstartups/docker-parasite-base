@@ -2,7 +2,7 @@
 set -e
 
 # Set environment
-ENV_SOURCE_DIR="${ENV_SOURCE_DIR:-/12factor/env.d}"
+ENV_DIR="${ENV_DIR:-/12factor/env.d}"
 ENV_TARGET_DIR="${ENV_TARGET_DIR:-/12factor/env}"
 PROFILE_DIR="/etc/profile.d"
 ENVIRONMENT_REGEX="^\s*([^#][^=]+)[=](.+)$"
@@ -23,7 +23,7 @@ DOCKER_HOSTNAME_FULL=$(hostname) # This assumes that /etc/hostname has the FQDN
 DOCKER_HOSTNAME=$(IFS=. read host domain <<<"${DOCKER_HOSTNAME_FULL}" && echo ${host})
 
 # Create directories
-mkdir -p "${ENV_SOURCE_DIR}"
+mkdir -p "${ENV_DIR}"
 mkdir -p "${ENV_TARGET_DIR}"
 mkdir -p "${PROFILE_DIR}"
 
@@ -40,7 +40,7 @@ DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}
 HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
-env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.docker.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
+env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.docker.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep . | sort >> "${ENV_TARGET_DIR}/docker.env"
 rm -f $temp_file
 
@@ -57,7 +57,7 @@ DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}
 HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
-env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.systemd.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
+env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.systemd.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep . | sort >> "${ENV_TARGET_DIR}/systemd.env"
 rm -f $temp_file
 
@@ -76,7 +76,7 @@ DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}
 HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
-env_files=`find "${ENV_SOURCE_DIR}" -type f -and \( \( -name '*.profile.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
+env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.profile.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort | sed -En "s/${ENVIRONMENT_REGEX}/export \1=\"\2\"/p" >> "${ENV_TARGET_DIR}/profile.sh"
 rm -f $temp_file
 ln -fs "${ENV_TARGET_DIR}/profile.sh" "${PROFILE_DIR}/12factor-env.sh"

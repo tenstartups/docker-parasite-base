@@ -7,4 +7,5 @@ build: Dockerfile
 	docker build -t ${DOCKER_IMAGE_NAME} .
 
 run: build
-	docker run -it --rm -e STAGE=stage -e ROLE=role ${DOCKER_IMAGE_NAME} ${ARGS}
+	docker run -it --rm -e STAGE=stage -e ROLE=role ${DOCKER_IMAGE_NAME} host ${ARGS}
+	docker run -it --rm -e STAGE=stage -e ROLE=role ${DOCKER_IMAGE_NAME} container ${ARGS}

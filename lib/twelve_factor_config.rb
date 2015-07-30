@@ -2,25 +2,21 @@
 
 require 'erb'
 require 'fileutils'
-require 'open_struct_ext'
+require 'twelve_factor_binding'
 require 'yaml'
 
 class TwelveFactorConfig
-
   def initialize(config_file, options = {})
-
-    @bindings = OpenStructExt.new(options)
-    @mode = options[:mode]
+    @bindings = TwelveFactorBinding.new(options)
 
     # Process the yml configuration through erb
     template = open(config_file, 'r') { |f| f.read }
     yaml = ERB.new(template).result(@bindings.instance_eval { binding })
     config = YAML.load(yaml) || {}
 
-    if (write_files = config['write_files']) && write_files.length > 0
-
-      # Process each file specified
-      write_files.each do |file|
+    # Deploy host files
+    if options[:mode] == 'host' && (host_files = config['host_files']) && host_files.length > 0
+      host_files.each do |file|
         # Check for required arguments
         unless file['path'] && file['path'].length > 0
           STDERR.puts 'Mandatory file path not specified.'
@@ -34,27 +30,25 @@ class TwelveFactorConfig
           STDERR.puts 'Mandatory file source not specified.'
           exit 1
         end
+        file['source'] = "./#{options[:source_dirname]}/host/#{file['source']}" unless file['source'].start_with?('/')
         unless File.exist?(file['source'])
           STDERR.puts "File source '#{file['source']}' not found."
           exit 1
         end
-
-        # Copy the file into place
         copy_file(file['source'], file['path'], file['permissions'])
       end
-
     end
 
-    if (systemd_units = config['systemd_units']) && systemd_units.length > 0
-
-      # Process each systemd unit specified
+    # Deploy host systemd units
+    if options[:mode] == 'host' && (systemd_units = config['systemd_units']) && systemd_units.length > 0
       systemd_units.each do |unit|
         # Check for required arguments
         unless unit['name'] && unit['name'].length > 0
           STDERR.puts 'Mandatory systemd unit name not specified.'
           exit 1
         end
-        if File.exist?(unit['path'] = "/12factor/systemd/#{unit['name']}")
+        unit['path'] = "/12factor/systemd/#{unit['name']}"
+        if File.exist?(unit['path'])
           STDERR.puts "Systemd unit '#{unit['name']}' already exists."
           exit 1
         end
@@ -62,12 +56,11 @@ class TwelveFactorConfig
           STDERR.puts 'Mandatory systemd unit source not specified.'
           exit 1
         end
+        unit['source'] = "./#{options[:source_dirname]}/host/#{unit['source']}" unless unit['source'].start_with?('/')
         unless File.exist?(unit['source'])
           STDERR.puts "Systemd unit source '#{unit['source']}' not found."
           exit 1
         end
-
-        # Copy the file into place
         copy_file(unit['source'], unit['path'], '0644')
       end
 
@@ -79,31 +72,43 @@ class TwelveFactorConfig
       copy_file('/tmp/start', '/12factor/systemd/start', '0644')
     end
 
+    # Deploy container files
+    if options[:mode] == 'container' && (container_files = config['container_files']) && container_files.length > 0
+      container_files.each do |file|
+        # Check for required arguments
+        unless file['path'] && file['path'].length > 0
+          STDERR.puts 'Mandatory file path not specified.'
+          exit 1
+        end
+        if File.exist?(file['path'])
+          STDERR.puts "File path '#{file['path']}' already exists."
+          exit 1
+        end
+        unless file['source'] && file['source'].length > 0
+          STDERR.puts 'Mandatory file source not specified.'
+          exit 1
+        end
+        file['source'] = "./#{options[:source_dirname]}/container/#{file['source']}" unless file['source'].start_with?('/')
+        unless File.exist?(file['source'])
+          STDERR.puts "File source '#{file['source']}' not found."
+          exit 1
+        end
+        copy_file(file['source'], file['path'], file['permissions'])
+      end
+    end
   end
 
   def copy_file(source, target, permissions)
-    target_dirs = case @mode
-                  when 'init'
-                    %w( bin env env.d init init.d script systemd tools.d )
-                  when 'conf'
-                    %w( conf )
-                  else
-                    %w()
-                  end
-    if target_dirs.any? { |dir| target.start_with?("/12factor/#{dir}/") }
-      puts "'#{source}' -> '#{target}'"
-      template = open(source, 'r') { |f| f.read }
-      content = ERB.new(template).result(@bindings.instance_eval { binding })
-      FileUtils.mkdir_p(File.dirname(target))
-      open(target, 'w') { |f| f.write(content) }
-      return unless permissions
-      if permissions =~ /[0-7]{3,4}/
-        FileUtils.chmod(permissions.to_i(8), target)
-      else
-        FileUtils.chmod(permissions, target)
-      end
+    puts "'#{source}' -> '#{target}'"
+    template = open(source, 'r') { |f| f.read }
+    content = ERB.new(template).result(@bindings.instance_eval { binding })
+    FileUtils.mkdir_p(File.dirname(target))
+    open(target, 'w') { |f| f.write(content) }
+    return unless permissions
+    if permissions =~ /[0-7]{3,4}/
+      FileUtils.chmod(permissions.to_i(8), target)
     else
-      puts "skipping '#{source}'"
+      FileUtils.chmod(permissions, target)
     end
   end
 end
