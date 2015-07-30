@@ -22,11 +22,11 @@ RUN \
 WORKDIR "/home/12factor"
 
 # Add files to the container.
-COPY conf.d /home/12factor/conf.d
-COPY lib /home/12factor/lib
+COPY conf.d conf.d
+COPY lib lib
 COPY docker-entrypoint.rb /entrypoint
 # The directory name under 12factor must match the name of the conf.d script
-COPY host /home/12factor/10-base/host
+COPY host 10-base/host
 
 # Define volumes.
 VOLUME ["/12factor"]
