@@ -34,7 +34,7 @@ fi
 # Create the twelve-factor data volume container if not already created
 if ! [ -z "${DOCKER_IMAGE_12FACTOR_DATA}" ] && ! [ -z "${DOCKER_CONTAINER_12FACTOR_DATA}" ]; then
   /12factor/bin/docker-check-pull ${DOCKER_CONTAINER_12FACTOR_DATA}
-  if [ -z "$(docker ps --no-trunc -a -q -f 'label=${DOCKER_CONTAINER_12FACTOR_DATA}')" ]; then
+  if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_12FACTOR_DATA})" ]; then
     /usr/bin/docker run \
       --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
       --label ${DOCKER_CONTAINER_12FACTOR_DATA} \

@@ -20,7 +20,7 @@ mkdir -p "/12factor/tools.d"
 mkdir -p "/12factor/systemd"
 
 # Create application data directory
-mkdir -p "/data" && ln -nfs "/data" "/12factor/data"
+mkdir -p "/data"
 
 # Create symlinks for all scipts in the bin directory without the .sh extension
 # for convenience

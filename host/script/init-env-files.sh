@@ -41,7 +41,7 @@ HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
 env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.docker.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
-cat $temp_file $env_files | grep . | sort >> "${ENV_TARGET_DIR}/docker.env"
+cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort >> "${ENV_TARGET_DIR}/docker.env"
 rm -f $temp_file
 
 # Build a combined environment file for use in systemd services
@@ -58,7 +58,7 @@ HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
 EOF
 env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.systemd.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
-cat $temp_file $env_files | grep . | sort >> "${ENV_TARGET_DIR}/systemd.env"
+cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort >> "${ENV_TARGET_DIR}/systemd.env"
 rm -f $temp_file
 
 # Build a profile script to export environment variables for bash shells
