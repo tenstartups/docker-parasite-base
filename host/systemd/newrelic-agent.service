@@ -14,7 +14,7 @@ ExecStartPre=-/12factor/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}
 ExecStartPre=-/12factor/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
 ExecStart=/usr/bin/docker run \
   --privileged \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v /dev:/dev \
   -v /sys:/sys \
   -e NEW_RELIC_LICENSE_KEY=${NEWRELIC_LICENSE_KEY} \

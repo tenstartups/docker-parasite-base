@@ -18,8 +18,8 @@ ExecStart=/usr/bin/docker run \
   -p 2380:2380 \
   -e ETCD_ELECTION_TIMEOUT=1200 \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
+  --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
-  -v /data/etcd:/data/etcd \
   --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_ETCD} \

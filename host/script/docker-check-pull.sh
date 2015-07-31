@@ -19,6 +19,13 @@ image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | a
 # Update the docker image name to include tag if it didn't have it
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
 
+# Generate an id file for downstream actions to trigger off of when changed
+image_id_file="/12factor/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
+if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
+  mkdir -p "$(dirname ${image_id_file})"
+  printf ${image_id} > "${image_id_file}"
+fi
+
 # Extract the private registry host and normalize the repository name
 private_registry_host=`echo ${repository} | \
   sed -En 's/^\s*((https?:\/\/)?(([-_A-Za-z0-9]+\.)+([-_A-Za-z0-9]+))\/)?(.+)$/\3/p'`
@@ -35,7 +42,7 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-auth_token=$(cat "/home/core/.dockercfg" | "/12factor/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{print $2}' | awk 'gsub(/["]/, "")')
+auth_token=$(cat "/home/core/.dockercfg" | "/12factor/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{ print $2 }' | awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
@@ -69,14 +76,9 @@ if [ "$pull_image" = "true" ]; then
     # Pull the newer image
     docker pull "${DOCKER_IMAGE_NAME}"
 
-    # Generate a filename to dump the image id to on update, which can be used to
-    # trigger actions on image changes
-    image_id_file="/data/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
-
-    # Dump the image id atomically to file
-    mkdir -p "$(dirname $image_id_file)"
-    printf $remote_image_id > "$image_id_file.tmp"
-    rsync --remove-source-files --checksum --chmod=a+rw "$image_id_file.tmp" "$image_id_file"
+    # Dump the new image id to the id file
+    mkdir -p "$(dirname ${image_id_file})"
+    printf ${remote_image_id} > "${image_id_file}"
 
     echo "Finished pulling docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
     /12factor/bin/send-notification success "Finished pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"

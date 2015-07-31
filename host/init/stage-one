@@ -19,9 +19,6 @@ mkdir -p "/12factor/script"
 mkdir -p "/12factor/tools.d"
 mkdir -p "/12factor/systemd"
 
-# Create application data directory
-mkdir -p "/data"
-
 # Create symlinks for all scipts in the bin directory without the .sh extension
 # for convenience
 find "/12factor/script" -type f -iname "*.sh" | while read f; do
