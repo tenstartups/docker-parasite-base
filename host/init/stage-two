@@ -42,10 +42,6 @@ if ! [ -z "${DOCKER_IMAGE_12FACTOR_DATA}" ] && ! [ -z "${DOCKER_CONTAINER_12FACT
       --volume /data \
       --name ${DOCKER_CONTAINER_12FACTOR_DATA} \
       ${DOCKER_IMAGE_12FACTOR_DATA}
-    /usr/bin/docker run --rm \
-      --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
-      ${DOCKER_IMAGE_SHELL} \
-      bash -c 'cd /data; chmod 777 .; mkdir sockets'
   fi
 fi
 

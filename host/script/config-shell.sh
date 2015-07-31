@@ -4,4 +4,4 @@
 docker run -it --rm \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
   ${DOCKER_IMAGE_SHELL} \
-  bash -c 'cd /12factor; ls -al; exec bash'
+  bash -c 'cd /12factor && ls -al && exec bash'

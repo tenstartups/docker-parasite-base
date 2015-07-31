@@ -5,4 +5,4 @@ docker run --rm \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
   -v $(pwd):/backup \
   ${DOCKER_IMAGE_SHELL} \
-  tar cvzf /backup/12factor-data.tar.gz /data
+  bash -c 'cd /data && tar cvzf /backup/12factor-data.tar.gz .'
