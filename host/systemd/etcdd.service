@@ -8,12 +8,12 @@ Restart=always
 RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
-EnvironmentFile=/12factor/env/systemd.env
+EnvironmentFile=<%= config_directory %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
-ExecStartPre=-/12factor/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
-ExecStartPre=-/12factor/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
-ExecStartPre=-/12factor/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
-ExecStartPre=/12factor/bin/data-check-mkdir /data/etcd
+ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
+ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
+ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
+ExecStartPre=/opt/bin/data-check-mkdir <%= data_directory %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
@@ -24,17 +24,17 @@ ExecStart=/usr/bin/docker run \
   --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_ETCD} \
-    --data-dir /data/etcd \
-    --ca-file /12factor/conf/etcd/ca.pem \
-    --cert-file /12factor/conf/etcd/cert.pem \
-    --key-file /12factor/conf/etcd/key.pem \
-    --peer-ca-file /12factor/conf/etcd/peer-ca.pem \
-    --peer-cert-file /12factor/conf/etcd/peer-cert.pem \
-    --peer-key-file /12factor/conf/etcd/peer-key.pem \
+    --data-dir <%= data_directory %>/etcd \
+    --ca-file <%= config_directory %>/conf/etcd/ca.pem \
+    --cert-file <%= config_directory %>/conf/etcd/cert.pem \
+    --key-file <%= config_directory %>/conf/etcd/key.pem \
+    --peer-ca-file <%= config_directory %>/conf/etcd/peer-ca.pem \
+    --peer-cert-file <%= config_directory %>/conf/etcd/peer-cert.pem \
+    --peer-key-file <%= config_directory %>/conf/etcd/peer-key.pem \
     --discovery ${ETCD_DISCOVERY_URL} \
     --advertise-client-urls http://${HOST_PUBLIC_IP_ADDRESS}:2379 \
     --initial-advertise-peer-urls http://${HOST_PUBLIC_IP_ADDRESS}:2380 \
     --listen-client-urls http://0.0.0.0:2379 \
     --listen-peer-urls http://0.0.0.0:2380
-ExecStartPost=/12factor/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
+ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
 ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}

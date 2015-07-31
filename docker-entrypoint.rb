@@ -10,6 +10,8 @@ when /host|container/
   Dir['./conf.d/*.yml'].sort.each do |config|
     options = {
       mode: mode,
+      config_directory: '/12factor-config',
+      data_directory: '/12factor-data',
       source_dirname: File.basename(config)[/(?<dirname>[0-9]+\-[a-z0-9]+)(\-.+)?\.yml/, :dirname],
       hostname: ENV['HOSTNAME'].split('.').first,
       stage: ENV['STAGE'],

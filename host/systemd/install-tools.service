@@ -5,7 +5,7 @@ Description=CoreOS tools installation service
 User=root
 Type=oneshot
 WorkingDirectory=/home/core
-EnvironmentFile=/12factor/env/systemd.env
-ExecStartPre=-/12factor/bin/send-notification warn "Starting `%n`"
-ExecStart=/12factor/bin/coreos-install-tools
-ExecStartPost=-/12factor/bin/send-notification success "Finished `%n`"
+EnvironmentFile=<%= config_directory %>/env/systemd.env
+ExecStartPre=-/opt/bin/send-notification warn "Starting `%n`"
+ExecStart=/opt/bin/coreos-install-tools
+ExecStartPost=-/opt/bin/send-notification success "Finished `%n`"

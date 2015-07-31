@@ -20,7 +20,7 @@ image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | a
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
 
 # Generate an id file for downstream actions to trigger off of when changed
-image_id_file="/12factor/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
+image_id_file="<%= config_directory %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
 if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
   mkdir -p "$(dirname ${image_id_file})"
   printf ${image_id} > "${image_id_file}"
@@ -42,12 +42,12 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-auth_token=$(cat "/home/core/.dockercfg" | "/12factor/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{ print $2 }' | awk 'gsub(/["]/, "")')
+auth_token=$(cat "/home/core/.dockercfg" | "/opt/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{ print $2 }' | awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
   remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${repository}/tags/${image_tag}" | \
-    "/12factor/bin/json-parse" 2>/dev/null | grep '\[0,"id"\]' | awk '{ gsub(/"/, ""); print $2 }'`
+    "/opt/bin/json-parse" 2>/dev/null | grep '\[0,"id"\]' | awk '{ gsub(/"/, ""); print $2 }'`
 else
   remote_image_id=`wget -qO- --header="Authorization: Basic ${auth_token}" "${registry_url}/${repository}/tags/${image_tag}" | \
     sed -En 's/["]([0-9a-fA-F]+)["]/\1/p' | cut -c 1-12`
@@ -70,7 +70,7 @@ if [ "$pull_image" = "true" ]; then
   umask 0000
   (
     echo "Pulling docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
-    /12factor/bin/send-notification warn "Pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
+    /opt/bin/send-notification warn "Pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
     flock --exclusive --wait 300 200 || exit 1
 
     # Pull the newer image
@@ -81,7 +81,7 @@ if [ "$pull_image" = "true" ]; then
     printf ${remote_image_id} > "${image_id_file}"
 
     echo "Finished pulling docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
-    /12factor/bin/send-notification success "Finished pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
+    /opt/bin/send-notification success "Finished pulling docker image \`${DOCKER_IMAGE_NAME} (${remote_image_id})\`"
   ) 200>/tmp/.docker.lockfile
   umask $old_umask
 fi

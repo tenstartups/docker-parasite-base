@@ -30,10 +30,10 @@ T="$(($(date +%s)-T))"
 # Exit based on whether the container is running or not
 if [ "${CONTAINER_RUNNING}" = "true" ]; then
   echo "Container ${DOCKER_CONTAINER_NAME} is running after $T seconds."
-  /12factor/bin/send-notification success "Container \`${DOCKER_CONTAINER_NAME}\` is running after $T seconds."
+  /opt/bin/send-notification success "Container \`${DOCKER_CONTAINER_NAME}\` is running after $T seconds."
   exit 0
 else
   echo >&2 "Container ${DOCKER_CONTAINER_NAME} is NOT running after $T seconds."
-  /12factor/bin/send-notification error "Container \`${DOCKER_CONTAINER_NAME}\` is NOT running after $T seconds."
+  /opt/bin/send-notification error "Container \`${DOCKER_CONTAINER_NAME}\` is NOT running after $T seconds."
   exit 1
 fi

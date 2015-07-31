@@ -29,7 +29,7 @@ COPY docker-entrypoint.rb /entrypoint
 COPY host 10-base/host
 
 # Define volumes.
-VOLUME ["/12factor"]
+VOLUME ["/12factor-config"]
 
 # Set the entrypoint script.
 ENTRYPOINT ["/entrypoint"]

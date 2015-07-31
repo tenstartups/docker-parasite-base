@@ -7,5 +7,5 @@ After=etcdd.service
 User=root
 Type=oneshot
 RemainAfterExit=true
-EnvironmentFile=/12factor/env/systemd.env
-ExecStart=/12factor/bin/etcd2env
+EnvironmentFile=<%= config_directory %>/env/systemd.env
+ExecStart=/opt/bin/etcd2env

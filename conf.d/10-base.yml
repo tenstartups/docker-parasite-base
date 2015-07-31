@@ -3,35 +3,35 @@ host_files:
 
   # Environment files
 <% source_files(:host, 'env.d/*.env') do |relative_path| %>
-  - path: /12factor/<%= relative_path %>
+  - path: <%= config_directory %>/<%= relative_path %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
 
   # Initialization scripts
 <% source_files(:host, 'init/*') do |relative_path| %>
-  - path: /12factor/<%= relative_path %>
+  - path: <%= config_directory %>/<%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
 
 # Initialization script pieces
 <% source_files(:host, 'init.d/*.sh') do |relative_path| %>
-  - path: /12factor/<%= relative_path %>
+  - path: <%= config_directory %>/<%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
 
   # Script files
 <% source_files(:host, 'script/*.sh') do |relative_path| %>
-  - path: /12factor/<%= relative_path %>
+  - path: <%= config_directory %>/<%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
 
   # Tools installation scripts
 <% source_files(:host, 'tools.d/*.sh') do |relative_path| %>
-  - path: /12factor/<%= relative_path %>
+  - path: <%= config_directory %>/<%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>

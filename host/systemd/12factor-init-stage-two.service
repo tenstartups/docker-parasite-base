@@ -7,5 +7,5 @@ After=12factor-init-stage-one.service
 User=root
 Type=oneshot
 RemainAfterExit=true
-EnvironmentFile=/12factor/env/systemd.env
-ExecStart=/12factor/init/stage-two
+EnvironmentFile=<%= config_directory %>/env/systemd.env
+ExecStart=<%= config_directory %>/init/stage-two

@@ -13,10 +13,10 @@ NOTIFIER_SENDER=$(hostname) # This assumes that /etc/hostname has the FQDN
 NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host})
 
 # Call the notifier with our without an attachment
-/12factor/bin/docker-check-pull "${DOCKER_IMAGE_NOTIFIER}"
+/opt/bin/docker-check-pull "${DOCKER_IMAGE_NOTIFIER}"
 if [ -z "${FILE_ATTACHMENT}" ]; then
   docker run --rm \
-    --env-file="/12factor/env/docker.env" \
+    --env-file="<%= config_directory %>/env/docker.env" \
     -e LOGSPOUT=ignore \
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
@@ -25,7 +25,7 @@ if [ -z "${FILE_ATTACHMENT}" ]; then
     "$@"
 else
   docker run --rm \
-    --env-file="/12factor/env/docker.env" \
+    --env-file="<%= config_directory %>/env/docker.env" \
     -v "${FILE_ATTACHMENT}:/tmp/$(basename ${FILE_ATTACHMENT}):ro" \
     -e LOGSPOUT=ignore \
     -e NOTIFIER_SENDER=${SENDER} \

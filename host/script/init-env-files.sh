@@ -2,8 +2,8 @@
 set -e
 
 # Set environment
-ENV_DIR="${ENV_DIR:-/12factor/env.d}"
-ENV_TARGET_DIR="${ENV_TARGET_DIR:-/12factor/env}"
+ENV_DIR="${ENV_DIR:-<%= config_directory %>/env.d}"
+ENV_TARGET_DIR="${ENV_TARGET_DIR:-<%= config_directory %>/env}"
 PROFILE_DIR="/etc/profile.d"
 ENVIRONMENT_REGEX="^\s*([^#][^=]+)[=](.+)$"
 
@@ -69,7 +69,7 @@ cat << EOF > "${ENV_TARGET_DIR}/profile.sh"
 EOF
 temp_file="$(mktemp)"
 cat << EOF > "$temp_file"
-PATH=\$PATH:/12factor/bin
+PATH=\$PATH:/opt/bin
 DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
 DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}

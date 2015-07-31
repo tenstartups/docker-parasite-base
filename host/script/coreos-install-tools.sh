@@ -2,4 +2,4 @@
 set -e
 
 # Execute each of the tools installation scripts in order
-find "/12factor/tools.d" -type f | sort | while read f; do "$f"; done
+find "<%= config_directory %>/tools.d" -type f | sort | while read f; do "$f"; done

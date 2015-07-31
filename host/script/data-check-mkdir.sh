@@ -1,9 +1,10 @@
 #!/bin/bash +x
+set -e
 
 # Set environment
 DATA_SUBDIRECTORY=$1
-PERMISSIONS=${2:-766}
-OWNER=${3:-root:root}
+PERMISSIONS=$2
+OWNER=$3
 
 # Exit with error if required environment is not present
 if [ -z "${DATA_SUBDIRECTORY}" ]; then
@@ -11,8 +12,12 @@ if [ -z "${DATA_SUBDIRECTORY}" ]; then
   exit 1
 fi
 
-/12factor/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
+/opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
   ${DOCKER_IMAGE_SHELL} \
-  sh -c "mkdir -p ${DATA_SUBDIRECTORY} && chmod ${PERMISSIONS} ${DATA_SUBDIRECTORY} && chown ${OWNER} ${DATA_SUBDIRECTORY}"
+  sh -c " \
+    mkdir -p ${DATA_SUBDIRECTORY} && \
+    if ! [ -z "${PERMISSIONS}" ]; then chmod ${PERMISSIONS} ${DATA_SUBDIRECTORY}; fi && \
+    if ! [ -z "${OWNER}" ]; then chown ${OWNER} ${DATA_SUBDIRECTORY}; fi \
+  "

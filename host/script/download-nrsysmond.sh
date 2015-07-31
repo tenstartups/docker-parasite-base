@@ -9,6 +9,6 @@ tempdir="$(mktemp -d)"
 pushd "${tempdir}" > /dev/null
 /usr/bin/wget -r --no-parent --accept-regex 'newrelic\-sysmond\-[.0-9]+\-linux\.tar\.gz' https://download.newrelic.com/server_monitor/release/
 /usr/bin/tar xvzf ./download.newrelic.com/server_monitor/release/newrelic-sysmond-*-linux.tar.gz
-cp ./newrelic-sysmond-*-linux/daemon/nrsysmond.${NRSYSMOND_ARCH} /12factor/bin/nrsysmond
+cp ./newrelic-sysmond-*-linux/daemon/nrsysmond.${NRSYSMOND_ARCH} /opt/bin/nrsysmond
 popd > /dev/null
 rm -rf "${tempdir}"

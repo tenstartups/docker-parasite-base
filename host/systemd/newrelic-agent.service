@@ -7,11 +7,11 @@ Restart=always
 RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
-EnvironmentFile=/12factor/env/systemd.env
+EnvironmentFile=<%= config_directory %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
-ExecStartPre=-/12factor/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
-ExecStartPre=-/12factor/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}
-ExecStartPre=-/12factor/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
+ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
+ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}
+ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
 ExecStart=/usr/bin/docker run \
   --privileged \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
@@ -22,5 +22,5 @@ ExecStart=/usr/bin/docker run \
   --net host \
   --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_NEWRELIC_AGENT}
-ExecStartPost=/12factor/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
+ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
 ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}

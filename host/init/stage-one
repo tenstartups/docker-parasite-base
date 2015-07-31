@@ -7,40 +7,30 @@ set -e
 # such as docker operations.
 
 # Symlink the 12factor directory for convenience
-ln -nfs "/var/run/12factor" "/12factor"
-
-# Create required subdirectories
-mkdir -p "/12factor/bin"
-mkdir -p "/12factor/env"
-mkdir -p "/12factor/env.d"
-mkdir -p "/12factor/init"
-mkdir -p "/12factor/init.d"
-mkdir -p "/12factor/script"
-mkdir -p "/12factor/tools.d"
-mkdir -p "/12factor/systemd"
-
-# Create symlinks for all scipts in the bin directory without the .sh extension
-# for convenience
-find "/12factor/script" -type f -iname "*.sh" | while read f; do
-  ln -fsv "$f" "/12factor/bin/`basename ${f%.sh}`"
-done
+ln -nfs "/var/run<%= config_directory %>" "<%= config_directory %>"
 
 # Move the stage 2 init service directly to the systemd run directory
-if [ -f "/12factor/systemd/12factor-init-stage-two.service" ]; then
-  mv -fv "/12factor/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
+if [ -f "<%= config_directory %>/systemd/12factor-init-stage-two.service" ]; then
+  mv -fv "<%= config_directory %>/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
 fi
 
 # Create symlinks for all systemd units in the systemd directory
-find "/12factor/systemd" -type f | while read f; do
+find "<%= config_directory %>/systemd" -type f | while read f; do
   ln -fsv "$f" "/var/run/systemd/system/`basename $f`"
 done
 
+# Create symlinks for all scipts to the /opt/bin directory without the .sh extension
+# for convenience
+mkdir -p "/opt/bin"
+find "<%= config_directory %>/script" -type f -iname "*.sh" | while read f; do
+  ln -fsv "$f" "/opt/bin/`basename ${f%.sh}`"
+done
+
+# Create a symlink for the environment profile
+ln -fsv "<%= config_directory %>/env/profile.sh" "/etc/profile.d/12factor-env.sh"
+
 # Reload the systemctl daemon to load any new systemd units
 systemctl daemon-reload
-
-# Run the environment configuration script to generate consolidated environment
-# files for use in systemd services and docker containers
-/12factor/bin/init-env-files
 
 # Start the stage two initialization and exit
 systemctl start 12factor-init-stage-two &
