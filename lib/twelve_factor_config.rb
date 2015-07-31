@@ -60,7 +60,7 @@ class TwelveFactorConfig
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
       end
-      copy_file(file['source'], file['path'], file['permissions'])
+      deploy_file(file['source'], file['path'], file['permissions'])
     end
   end
 
@@ -85,7 +85,7 @@ class TwelveFactorConfig
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
       end
-      copy_file(file['source'], file['path'], file['permissions'])
+      deploy_file(file['source'], file['path'], file['permissions'])
     end
   end
 
@@ -111,7 +111,7 @@ class TwelveFactorConfig
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
         exit 1
       end
-      copy_file(unit['source'], unit['path'], '0644')
+      deploy_file(unit['source'], unit['path'], '0644')
     end
 
     # Create the service start file
@@ -119,7 +119,7 @@ class TwelveFactorConfig
       .select { |attrs| attrs['start'] == true }
       .map { |attrs| attrs['name'] }
       .each { |name| File.open('/tmp/start', 'a') { |f| f.puts name } }
-    copy_file('/tmp/start', "#{@options[:config_directory]}/systemd/start", '0644')
+    deploy_file('/tmp/start', "#{@options[:config_directory]}/systemd/start", '0644')
   end
 
   def build_environment_files
@@ -145,7 +145,7 @@ class TwelveFactorConfig
         environment = network_env.clone
         Dir["#{env_parts_dir}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
-          .each do |env_part_file|
+          .sort.each do |env_part_file|
           File.readlines(env_part_file).each do |line|
             if (match = environment_regex.match(line))
               environment[match[:name]] = match[:value]
@@ -185,10 +185,11 @@ class TwelveFactorConfig
     buf[20..24].unpack('CCCC').join('.')
   end
 
-  def copy_file(source, target, permissions)
+  def deploy_file(source, target, permissions)
     puts "'#{source}' -> '#{target}'"
     template = open(source, 'r') { |f| f.read }
     content = ERB.new(template).result(@bindings.instance_eval { binding })
+    content.gsub!(/^(.*)(___ERB_REMOVE_LINE___)(.*)$\n/, '')
     FileUtils.mkdir_p(File.dirname(target))
     open(target, 'w') { |f| f.write(content) }
     return unless permissions
