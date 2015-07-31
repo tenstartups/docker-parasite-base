@@ -27,6 +27,7 @@ find "<%= config_directory %>/script" -type f -iname "*.sh" | while read f; do
 done
 
 # Create a symlink for the environment profile
+mkdir -p "/etc/profile.d/12factor-env.sh"
 ln -fsv "<%= config_directory %>/env/profile.sh" "/etc/profile.d/12factor-env.sh"
 
 # Reload the systemctl daemon to load any new systemd units
