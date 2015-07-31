@@ -11,13 +11,9 @@ TimeoutStopSec=30
 EnvironmentFile=/12factor/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
 ExecStartPre=-/12factor/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
-ExecStartPre=-/12factor/bin/docker-check-pull ${DOCKER_IMAGE_SHELL}
 ExecStartPre=-/12factor/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
 ExecStartPre=-/12factor/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
-ExecStartPre=/usr/bin/docker run --rm \
-  --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
-  ${DOCKER_IMAGE_SHELL} \
-  bash -c 'mkdir -p /data/etcd'
+ExecStartPre=/12factor/bin/data-check-mkdir /data/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
