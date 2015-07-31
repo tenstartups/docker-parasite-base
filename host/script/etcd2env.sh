@@ -3,7 +3,7 @@ set -e
 
 # Set environment variables
 ETCD_ENVIRONMENT_VARIABLE_REGEX="^\s*ETCD2ENV_([_A-Z0-9]+)=(.+)\s*$"
-ENV_FILE="<%= config_directory %>/env/etcd2env.env"
+ENV_FILE="<%= get(:config_directory) %>/env/etcd2env.env"
 
 # Wait until etcd is alive
 until /usr/bin/etcdctl ls --recursive ; do

@@ -20,7 +20,7 @@ image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | a
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
 
 # Generate an id file for downstream actions to trigger off of when changed
-image_id_file="<%= config_directory %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
+image_id_file="<%= get(:config_directory) %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
 if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
   mkdir -p "$(dirname ${image_id_file})"
   printf ${image_id} > "${image_id_file}"

@@ -8,12 +8,12 @@ Restart=always
 RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
-EnvironmentFile=<%= config_directory %>/env/systemd.env
+EnvironmentFile=<%= get(:config_directory) %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
 ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
-ExecStartPre=/opt/bin/data-check-mkdir <%= data_directory %>/etcd
+ExecStartPre=/opt/bin/data-check-mkdir <%= get(:data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
@@ -24,13 +24,13 @@ ExecStart=/usr/bin/docker run \
   --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_ETCD} \
-    --data-dir <%= data_directory %>/etcd \
-    --ca-file <%= config_directory %>/conf/etcd/ca.pem \
-    --cert-file <%= config_directory %>/conf/etcd/cert.pem \
-    --key-file <%= config_directory %>/conf/etcd/key.pem \
-    --peer-ca-file <%= config_directory %>/conf/etcd/peer-ca.pem \
-    --peer-cert-file <%= config_directory %>/conf/etcd/peer-cert.pem \
-    --peer-key-file <%= config_directory %>/conf/etcd/peer-key.pem \
+    --data-dir <%= get(:data_directory) %>/etcd \
+    --ca-file <%= get(:config_directory) %>/conf/etcd/ca.pem \
+    --cert-file <%= get(:config_directory) %>/conf/etcd/cert.pem \
+    --key-file <%= get(:config_directory) %>/conf/etcd/key.pem \
+    --peer-ca-file <%= get(:config_directory) %>/conf/etcd/peer-ca.pem \
+    --peer-cert-file <%= get(:config_directory) %>/conf/etcd/peer-cert.pem \
+    --peer-key-file <%= get(:config_directory) %>/conf/etcd/peer-key.pem \
     --discovery ${ETCD_DISCOVERY_URL} \
     --advertise-client-urls http://${HOST_PUBLIC_IP_ADDRESS}:2379 \
     --initial-advertise-peer-urls http://${HOST_PUBLIC_IP_ADDRESS}:2380 \

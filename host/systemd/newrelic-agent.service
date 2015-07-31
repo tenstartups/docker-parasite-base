@@ -7,7 +7,7 @@ Restart=always
 RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
-EnvironmentFile=<%= config_directory %>/env/systemd.env
+EnvironmentFile=<%= get(:config_directory) %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}

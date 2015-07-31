@@ -8,7 +8,7 @@ Restart=always
 RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
-EnvironmentFile=<%= config_directory %>/env/systemd.env
+EnvironmentFile=<%= get(:config_directory) %>/env/systemd.env
 Environment=NRSYSMOND_ARCH=x64
 Environment=NRSYSMOND_CONFIG_FILE=/tmp/newrelic-sysmond.conf
 Environment=NRSYSMOND_PID_FILE=/var/run/nrsysmond.pid

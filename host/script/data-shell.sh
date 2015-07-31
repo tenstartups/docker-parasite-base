@@ -5,4 +5,4 @@ set -e
 docker run -it --rm \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
   ${DOCKER_IMAGE_SHELL} \
-  sh -c 'cd <%= data_directory %> && ls -al && exec bash'
+  sh -c 'cd <%= get(:data_directory) %> && ls -al && exec bash'

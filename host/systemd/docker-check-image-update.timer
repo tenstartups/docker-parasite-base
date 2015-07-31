@@ -2,7 +2,7 @@
 Description=Docker check image update timer
 
 [Timer]
-EnvironmentFile=<%= config_directory %>/env/systemd.env
+EnvironmentFile=<%= get(:config_directory) %>/env/systemd.env
 OnBootSec=15min
 OnUnitInactiveSec=2min
 Unit=docker-check-image-update.service

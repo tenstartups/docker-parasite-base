@@ -2,8 +2,8 @@
 set -e
 
 # Set environment
-ENV_DIR="${ENV_DIR:-<%= config_directory %>/env.d}"
-ENV_TARGET_DIR="${ENV_TARGET_DIR:-<%= config_directory %>/env}"
+ENV_DIR="${ENV_DIR:-<%= get(:config_directory) %>/env.d}"
+ENV_TARGET_DIR="${ENV_TARGET_DIR:-<%= get(:config_directory) %>/env}"
 PROFILE_DIR="/etc/profile.d"
 ENVIRONMENT_REGEX="^\s*([^#][^=]+)[=](.+)$"
 

@@ -38,7 +38,7 @@ if ! [ -z "${DOCKER_IMAGE_12FACTOR_DATA}" ] && ! [ -z "${DOCKER_CONTAINER_12FACT
     /usr/bin/docker run \
       --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
       --label ${DOCKER_CONTAINER_12FACTOR_DATA} \
-      --volume <%= data_directory %> \
+      --volume <%= get(:data_directory) %> \
       --name ${DOCKER_CONTAINER_12FACTOR_DATA} \
       ${DOCKER_IMAGE_12FACTOR_DATA}
   fi
@@ -59,7 +59,7 @@ fi
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order
-find "<%= config_directory %>/init.d" -type f | sort | uniq | while read file; do
+find "<%= get(:config_directory) %>/init.d" -type f | sort | uniq | while read file; do
   if [[ "$file" == *.yml ]]; then
     echo "Executing twelve-factor initialization cloud-config $file..."
     coreos-cloudinit --from-file="$file"
@@ -71,8 +71,8 @@ find "<%= config_directory %>/init.d" -type f | sort | uniq | while read file; d
 done
 
 # Start services listed in the systemd start file
-if [ -f "<%= config_directory %>/systemd/start" ]; then
-  cat "<%= config_directory %>/systemd/start" | sort | while read unit; do
+if [ -f "<%= get(:config_directory) %>/systemd/start" ]; then
+  cat "<%= get(:config_directory) %>/systemd/start" | sort | while read unit; do
     systemctl start $unit &
   done
   wait
