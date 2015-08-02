@@ -55,7 +55,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
-      file['source'] = "./#{@options[:source_dirname]}/host/#{file['source']}" unless file['source'].start_with?('/')
+      file['source'] = File.join(@options[:source_directory], file['source']) unless file['source'].start_with?('/')
       unless File.exist?(file['source'])
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
@@ -80,7 +80,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
-      file['source'] = "./#{@options[:source_dirname]}/container/#{file['source']}" unless file['source'].start_with?('/')
+      file['source'] = File.join(@options[:source_directory], file['source']) unless file['source'].start_with?('/')
       unless File.exist?(file['source'])
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
@@ -106,7 +106,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory systemd unit source not specified.'
         exit 1
       end
-      unit['source'] = "./#{@options[:source_dirname]}/host/#{unit['source']}" unless unit['source'].start_with?('/')
+      unit['source'] = File.join(@options[:source_directory], unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
         exit 1

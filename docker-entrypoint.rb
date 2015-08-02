@@ -1,4 +1,5 @@
 #!/usr/bin/env ruby
+
 require 'twelve_factor_config'
 
 # Look for known command aliases
@@ -10,12 +11,16 @@ when /host|container/
   Dir['./conf.d/*.yml'].sort.each do |config|
     options = {
       mode: mode,
-      config_directory: '/12factor-config',
-      data_directory: '/12factor-data',
-      source_dirname: File.basename(config)[/(?<dirname>[0-9]+\-[a-z0-9]+)(\-.+)?\.yml/, :dirname],
       hostname: ENV['HOSTNAME'].split('.').first,
       stage: ENV['STAGE'],
-      role: ENV['ROLE']
+      role: ENV['ROLE'],
+      source_directory: File.join(
+        '.',
+        File.basename(config)[/([0-9]+\-[a-z0-9]+)(\-.+)?\.yml/, 1],
+        mode
+      ),
+      config_directory: '/12factor-config',
+      data_directory: '/12factor-data'
     }
     TwelveFactorConfig.new(config, options)
   end

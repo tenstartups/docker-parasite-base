@@ -12,8 +12,9 @@ class TwelveFactorBinding < OpenStruct
   end
 
   def source_files(mode, pattern, &block)
-    root_path = File.join('.', get(:source_dirname), mode.to_s)
-    Dir[File.join(root_path, pattern)].map { |f| f.slice!(File.join(root_path, '')); f }.each do |file|
+    Dir[File.join(get(:source_directory), pattern)]
+      .map { |f| f.slice!(File.join(get(:source_directory), '')); f }
+      .each do |file|
       block.call(file)
     end
   end
