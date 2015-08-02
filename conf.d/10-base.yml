@@ -21,6 +21,11 @@ host_files:
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
+<% source_files(:host, 'init.d/*.yml') do |relative_path| %>
+  - path: <%= get(:config_directory) %>/<%= relative_path %>
+    permissions: '0644'
+    source: <%= relative_path %>
+<% end %>
 
   # Script files
 <% source_files(:host, 'script/*.sh') do |relative_path| %>

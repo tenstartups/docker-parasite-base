@@ -1,0 +1,10 @@
+#cloud-config
+coreos:
+  units:
+    - name: docker.service
+      runtime: yes
+      drop-ins:
+        - name: 50-log-level.conf
+          content: |
+            [Service]
+            Environment='DOCKER_OPTS=--log-level=warn'

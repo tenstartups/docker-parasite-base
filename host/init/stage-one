@@ -6,7 +6,18 @@ set -e
 # second stage initialization.  This stage should NOT perform anything complicated
 # such as docker operations.
 
-# Symlink the 12factor directory for convenience
+# Make sure we are running at root
+if ! [ "$(whoami)" = "root" ]; then
+  echo >&2 "Twelve-factor stage one initialization must be run as root!"
+  exit 1
+fi
+
+# Copy the docker configuration file from root to the core user to ensure we
+# don't get authentication problems with docker regardless of user
+cp -fv "/root/.dockercfg" "/home/core/.dockercfg"
+chown core:core "/home/core/.dockercfg"
+
+# Symlink the 12factor directory to the root
 ln -nfs "/var/run<%= get(:config_directory) %>" "<%= get(:config_directory) %>"
 
 # Move the stage 2 init service directly to the systemd run directory
