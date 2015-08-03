@@ -3,8 +3,8 @@
 require 'twelve_factor_config'
 
 # Set default environment
-ENV['CONFIG_DIRECTORY'] ||= '/12factor-config'
-ENV['DATA_DIRECTORY'] ||= '/12factor-data'
+ENV['CONFIG_DIRECTORY'] = '/12factor-config' if ENV['CONFIG_DIRECTORY'].nil? || ENV['CONFIG_DIRECTORY'] == ''
+ENV['DATA_DIRECTORY'] = '/12factor-data' if ENV['DATA_DIRECTORY'].nil? || ENV['DATA_DIRECTORY'] == ''
 
 # Look for known command aliases
 case ARGV[0]
