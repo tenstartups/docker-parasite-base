@@ -2,6 +2,10 @@
 
 require 'twelve_factor_config'
 
+# Set default environment
+ENV['CONFIG_DIRECTORY'] ||= '/12factor-config'
+ENV['DATA_DIRECTORY'] ||= '/12factor-data'
+
 # Look for known command aliases
 case ARGV[0]
 when /host|container/
@@ -19,8 +23,8 @@ when /host|container/
         File.basename(config)[/([0-9]+\-[a-z0-9]+)(\-.+)?\.yml/, 1],
         mode
       ),
-      config_directory: '/12factor-config',
-      data_directory: '/12factor-data'
+      config_directory: ENV['CONFIG_DIRECTORY'],
+      data_directory: ENV['DATA_DIRECTORY']
     }
     TwelveFactorConfig.new(config, options)
   end

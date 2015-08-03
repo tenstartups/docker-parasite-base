@@ -123,10 +123,6 @@ class TwelveFactorConfig
   end
 
   def build_environment_files
-    env_parts_dir = File.join(@options[:config_directory], 'env.d')
-    env_dir =
-    environment_regex = /^\s*(?<name>[^#][^=]+)[=](?<value>.+)$/
-
     # Extract the network environment variables
     # This relies on the twelve-factor stage one init being run with docker
     # '--net host' parameter
@@ -134,20 +130,28 @@ class TwelveFactorConfig
     network_env = {
       'HOST_PUBLIC_IP_ADDRESS' => ENV['COREOS_PUBLIC_IPV4'],
       'HOST_PRIVATE_IP_ADDRESS' => ENV['COREOS_PRIVATE_IPV4'],
-      'DOCKER0_IP_ADDRESS' => (ip_address('docker0') rescue '172.17.42.1'),
+      'DOCKER0_IP_ADDRESS' => (ip_address('docker0') rescue nil),
       'DOCKER_HOSTNAME' => ENV['HOSTNAME'].split('.').first,
       'DOCKER_HOSTNAME_FULL' => ENV['HOSTNAME']
     }
+    if network_env['DOCKER0_IP_ADDRESS'].nil?
+      STDERR.puts 'Unable to find docker0 network adapter, did you run docker with --net=host?'
+      exit 1
+    end
+    if network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?
+      STDERR.puts 'CoreOS IPv4 address not found in environment, did you run docker with --env-file=/etc/environment?'
+      exit 1
+    end
 
     # Build the systemd, docker and profile environment files
     %w( systemd.env docker.env profile.sh ).each do |env_type|
       File.open(File.join(File.join(@options[:config_directory], 'env'), "#{env_type}"), 'w') do |env_file|
         environment = network_env.clone
-        Dir["#{env_parts_dir}/*.env"]
+        Dir["#{File.join(@options[:config_directory], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
           .sort.each do |env_part_file|
           File.readlines(env_part_file).each do |line|
-            if (match = environment_regex.match(line))
+            if (match = /^\s*(?<name>[^#][^=]+)[=](?<value>.+)$/.match(line))
               environment[match[:name]] = match[:value]
             end
           end
