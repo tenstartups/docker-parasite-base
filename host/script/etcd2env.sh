@@ -26,6 +26,7 @@ while [ -z "$(/usr/bin/etcdctl ls --recursive)" ]; do
   fi
   sleep 15
 done
+/usr/bin/etcdctl ls --recursive
 
 # Build a combined environment file for use in systemd services
 cat << EOF > "${ENV_FILE}"

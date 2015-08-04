@@ -78,6 +78,9 @@ if [ "$pull_image" = "true" ]; then
 
     # Dump the new image id to the id file
     mkdir -p "$(dirname ${image_id_file})"
+    if [ -f "${image_id_file}" ]; then
+      cp -f "${image_id_file}" "${image_id_file}.prev"
+    fi
     printf ${remote_image_id} > "${image_id_file}"
 
     echo "Finished pulling docker image ${DOCKER_IMAGE_NAME} (${remote_image_id})"
