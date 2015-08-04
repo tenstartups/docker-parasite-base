@@ -5,4 +5,4 @@ set -e
 docker run -it --rm \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
   ${DOCKER_IMAGE_SHELL} \
-  sh -c 'cd <%= get(:config_directory) %> && ls -al && exec bash'
+  sh -c 'cd <%= getenv!(:config_directory) %> && ls -al && exec bash'

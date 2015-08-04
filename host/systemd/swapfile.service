@@ -5,7 +5,7 @@ Description=Swap file management service
 User=root
 Type=oneshot
 RemainAfterExit=true
-EnvironmentFile=<%= get(:config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 Environment=SERVICE_NAME=swap-file
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${SERVICE_NAME}` service"
 ExecStart=/opt/bin/coreos-enable-swap

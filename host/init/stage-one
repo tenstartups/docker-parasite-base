@@ -12,34 +12,40 @@ if ! [ "$(whoami)" = "root" ]; then
   exit 1
 fi
 
+# Make sure the twelve-factor environment file is in place
+if ! [ -f "/12factor-config.env" ]; then
+  echo >&2 "Missing twelve-factor initialization environment file /12factor-config.env!"
+  exit 1
+fi
+
 # Copy the docker configuration file from root to the core user to ensure we
 # don't get authentication problems with docker regardless of user
 cp -fv "/root/.dockercfg" "/home/core/.dockercfg"
 chown core:core "/home/core/.dockercfg"
 
 # Symlink the 12factor directory to the root
-ln -nfs "/var/run<%= get(:config_directory) %>" "<%= get(:config_directory) %>"
+ln -nfs "/var/run<%= getenv!(:config_directory) %>" "<%= getenv!(:config_directory) %>"
 
 # Move the stage 2 init service directly to the systemd run directory
-if [ -f "<%= get(:config_directory) %>/systemd/12factor-init-stage-two.service" ]; then
-  mv -fv "<%= get(:config_directory) %>/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
+if [ -f "<%= getenv!(:config_directory) %>/systemd/12factor-init-stage-two.service" ]; then
+  mv -fv "<%= getenv!(:config_directory) %>/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
 fi
 
 # Create symlinks for all systemd units in the systemd directory
-find "<%= get(:config_directory) %>/systemd" -type f | while read f; do
+find "<%= getenv!(:config_directory) %>/systemd" -type f | while read f; do
   ln -fsv "$f" "/var/run/systemd/system/`basename $f`"
 done
 
 # Create symlinks for all scipts to the /opt/bin directory without the .sh extension
 # for convenience
 mkdir -p "/opt/bin"
-find "<%= get(:config_directory) %>/script" -type f -iname "*.sh" | while read f; do
+find "<%= getenv!(:config_directory) %>/script" -type f -iname "*.sh" | while read f; do
   ln -fsv "$f" "/opt/bin/`basename ${f%.sh}`"
 done
 
 # Create a symlink for the environment profile
 mkdir -p "/etc/profile.d"
-ln -fsv "<%= get(:config_directory) %>/env/profile.sh" "/etc/profile.d/12factor-env.sh"
+ln -fsv "<%= getenv!(:config_directory) %>/env/profile.sh" "/etc/profile.d/12factor-env.sh"
 
 # Reload the systemctl daemon to load any new systemd units
 systemctl daemon-reload

@@ -12,9 +12,8 @@ require 'yaml'
 SIOCGIFADDR = 0x8915
 
 class TwelveFactorConfig
-  def initialize(config_file, options = {})
-    @options = options
-    @bindings = TwelveFactorBinding.new(@options)
+  def initialize(config_file)
+    @bindings = TwelveFactorBinding.new
 
     # Process the yml configuration through erb
     template = open(config_file, 'r') { |f| f.read }
@@ -22,7 +21,7 @@ class TwelveFactorConfig
     @config = YAML.load(yaml) || {}
 
     # Call individual config methods
-    case @options[:mode]
+    case ENV['MODE']
     when 'host'
       create_host_directories
       deploy_host_files
@@ -35,7 +34,7 @@ class TwelveFactorConfig
 
   def create_host_directories
     %w( env env.d init init.d script tools.d systemd ).each do |config_dir|
-      FileUtils.mkdir_p(File.join(@options[:config_directory], config_dir))
+      FileUtils.mkdir_p(File.join(ENV['CONFIG_DIRECTORY'], config_dir))
     end
   end
 
@@ -55,7 +54,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
-      file['source'] = File.join(@options[:source_directory], file['source']) unless file['source'].start_with?('/')
+      file['source'] = File.join(ENV['SOURCE_DIRECTORY'], file['source']) unless file['source'].start_with?('/')
       unless File.exist?(file['source'])
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
@@ -80,7 +79,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
-      file['source'] = File.join(@options[:source_directory], file['source']) unless file['source'].start_with?('/')
+      file['source'] = File.join(ENV['SOURCE_DIRECTORY'], file['source']) unless file['source'].start_with?('/')
       unless File.exist?(file['source'])
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
@@ -97,7 +96,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory systemd unit name not specified.'
         exit 1
       end
-      unit['path'] = "#{@options[:config_directory]}/systemd/#{unit['name']}"
+      unit['path'] = File.join(ENV['CONFIG_DIRECTORY'], 'systemd', unit['name'])
       if File.exist?(unit['path'])
         STDERR.puts "Systemd unit '#{unit['name']}' already exists."
         exit 1
@@ -106,7 +105,7 @@ class TwelveFactorConfig
         STDERR.puts 'Mandatory systemd unit source not specified.'
         exit 1
       end
-      unit['source'] = File.join(@options[:source_directory], unit['source']) unless unit['source'].start_with?('/')
+      unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
         exit 1
@@ -118,8 +117,12 @@ class TwelveFactorConfig
     systemd_units
       .select { |attrs| attrs['start'] == true }
       .map { |attrs| attrs['name'] }
-      .each { |name| File.open('/tmp/start', 'a') { |f| f.puts name } }
-    deploy_file('/tmp/start', "#{@options[:config_directory]}/systemd/start", '0644')
+      .each do |name|
+        File.open(File.join(ENV['CONFIG_DIRECTORY'], 'systemd', 'start'), 'a') do |f|
+          puts "Adding #{name} to systemd auto-start list"
+          f.puts name
+        end
+      end
   end
 
   def build_environment_files
@@ -145,9 +148,9 @@ class TwelveFactorConfig
 
     # Build the systemd, docker and profile environment files
     %w( systemd.env docker.env profile.sh ).each do |env_type|
-      File.open(File.join(File.join(@options[:config_directory], 'env'), "#{env_type}"), 'w') do |env_file|
+      File.open(File.join(File.join(ENV['CONFIG_DIRECTORY'], 'env'), "#{env_type}"), 'w') do |env_file|
         environment = network_env.clone
-        Dir["#{File.join(@options[:config_directory], 'env.d')}/*.env"]
+        Dir["#{File.join(ENV['CONFIG_DIRECTORY'], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
           .sort.each do |env_part_file|
           File.readlines(env_part_file).each do |line|

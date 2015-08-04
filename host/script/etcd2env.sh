@@ -3,16 +3,28 @@ set -e
 
 # Set environment variables
 ETCD_ENVIRONMENT_VARIABLE_REGEX="^\s*ETCD2ENV_([_A-Z0-9]+)=(.+)\s*$"
-ENV_FILE="<%= get(:config_directory) %>/env/etcd2env.env"
+ENV_FILE="<%= getenv!(:config_directory) %>/env/etcd2env.env"
 
-# Wait until etcd is alive
-until /usr/bin/etcdctl ls --recursive ; do
+# Wait for etcd service to respond before proceeding
+until /usr/bin/etcdctl ls --recursive 2>/dev/null; do
+  echo "Waiting for etcd to start responding..."
   failures=$((failures+1))
-  if [ ${failures} -gt 10 ]; then
-    echo >&2 "Unable to load keys from etcd."
+  if [ ${failures} -gt 20 ]; then
+    echo >&2 "Timed-out waiting for etcd to start responding."
     exit 1
   fi
   sleep 5
+done
+
+# Wait for keys to be bootstrapped if this is the first machine in the cluster
+while [ -z "$(/usr/bin/etcdctl ls --recursive)" ]; do
+  echo "Waiting for initial etcd bootstrap keys..."
+  attempts=$((attempts+1))
+  if [ ${attempts} -gt 20 ]; then
+    echo >&2 "Timed-out waiting for initial etcd bootstrap keys."
+    exit 1
+  fi
+  sleep 15
 done
 
 # Build a combined environment file for use in systemd services

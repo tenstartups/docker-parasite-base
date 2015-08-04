@@ -7,5 +7,5 @@ After=etcdd.service
 User=root
 Type=oneshot
 RemainAfterExit=true
-EnvironmentFile=<%= get(:config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 ExecStart=/opt/bin/etcd2env
