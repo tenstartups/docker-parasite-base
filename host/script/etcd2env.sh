@@ -6,7 +6,7 @@ ETCD_ENVIRONMENT_VARIABLE_REGEX="^\s*ETCD2ENV_([_A-Z0-9]+)=(.+)\s*$"
 ENV_FILE="<%= getenv!(:config_directory) %>/env/etcd2env.env"
 
 # Wait for etcd service to respond before proceeding
-until /usr/bin/etcdctl ls --recursive 2>/dev/null; do
+until /usr/bin/etcdctl ls --recursive >/dev/null 2>&1; do
   echo "Waiting for etcd to start responding..."
   failures=$((failures+1))
   if [ ${failures} -gt 20 ]; then
@@ -26,6 +26,8 @@ while [ -z "$(/usr/bin/etcdctl ls --recursive)" ]; do
   fi
   sleep 15
 done
+
+# Dump out the entire tree
 /usr/bin/etcdctl ls --recursive
 
 # Build a combined environment file for use in systemd services
