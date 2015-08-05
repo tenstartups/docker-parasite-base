@@ -17,6 +17,7 @@ ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
+  -e ETCD_NAME=<%= getenv!(:hostname).split('.').first %> \
   -e ETCD_ELECTION_TIMEOUT=1200 \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
