@@ -17,25 +17,15 @@ ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
-  -e ETCD_NAME=<%= getenv!(:hostname).split('.').first %> \
-  -e ETCD_ELECTION_TIMEOUT=1200 \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_CONFIG} \
   --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
+  --env-file=<%= getenv!(:config_directory) %>/env/etcd.env \
+  -e ETCD_DISCOVERY=${ETCD_DISCOVERY_URL} \
+  -e ETCD_ADVERTISE_CLIENT_URLS=http://${HOST_PUBLIC_IP_ADDRESS}:2379 \
+  -e ETCD_INITIAL_ADVERTISE_PEER_URLS=http://${HOST_PUBLIC_IP_ADDRESS}:2380 \
   --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
-  ${DOCKER_IMAGE_ETCD} \
-    --data-dir <%= getenv!(:data_directory) %>/etcd \
-    --ca-file <%= getenv!(:config_directory) %>/conf/etcd/ca.pem \
-    --cert-file <%= getenv!(:config_directory) %>/conf/etcd/cert.pem \
-    --key-file <%= getenv!(:config_directory) %>/conf/etcd/key.pem \
-    --peer-ca-file <%= getenv!(:config_directory) %>/conf/etcd/peer-ca.pem \
-    --peer-cert-file <%= getenv!(:config_directory) %>/conf/etcd/peer-cert.pem \
-    --peer-key-file <%= getenv!(:config_directory) %>/conf/etcd/peer-key.pem \
-    --discovery ${ETCD_DISCOVERY_URL} \
-    --advertise-client-urls http://${HOST_PUBLIC_IP_ADDRESS}:2379 \
-    --initial-advertise-peer-urls http://${HOST_PUBLIC_IP_ADDRESS}:2380 \
-    --listen-client-urls http://0.0.0.0:2379 \
-    --listen-peer-urls http://0.0.0.0:2380
+  ${DOCKER_IMAGE_ETCD}
 ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
 ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}

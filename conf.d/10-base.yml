@@ -2,6 +2,13 @@
 host_files:
 
   # Environment files
+<% source_files(:host, 'env/*.env') do |relative_path| %>
+  - path: <%= getenv!(:config_directory) %>/<%= relative_path %>
+    permissions: '0644'
+    source: <%= relative_path %>
+<% end %>
+
+  # Environment file pieces
 <% source_files(:host, 'env.d/*.env') do |relative_path| %>
   - path: <%= getenv!(:config_directory) %>/<%= relative_path %>
     permissions: '0644'
