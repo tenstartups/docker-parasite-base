@@ -24,6 +24,7 @@ image_id_file="<%= getenv!(:config_directory) %>/docker/${DOCKER_IMAGE_NAME//\//
 if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
   mkdir -p "$(dirname ${image_id_file})"
   printf ${image_id} > "${image_id_file}"
+  cp -f "${image_id_file}" "${image_id_file}.prev"
 fi
 
 # Extract the private registry host and normalize the repository name

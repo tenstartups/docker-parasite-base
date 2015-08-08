@@ -62,8 +62,6 @@ systemd_units:
     source: systemd/newrelic-sysmond.service
   - name: etcdd.service
     source: systemd/etcdd.service
-  - name: etcd2env.service
-    source: systemd/etcd2env.service
   - name: docker-check-image-update.timer
     start: true
     source: systemd/docker-check-image-update.timer

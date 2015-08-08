@@ -170,7 +170,7 @@ class TwelveFactorConfig
         EOT
         if env_type == 'profile.sh'
           env_file.write(<<-EOT.gsub(/^\s+/, ''))
-            export PATH=$PATH:/opt/bin
+            export PATH=/opt/bin:$PATH
           EOT
         end
         environment.keys.sort.each do |env_name|
