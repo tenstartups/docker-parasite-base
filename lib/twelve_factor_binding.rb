@@ -1,5 +1,8 @@
 #!/usr/bin/env ruby
 
+require 'httparty'
+require 'resolv'
+
 class TwelveFactorBinding
   def getenv(key, fail_on_blank = false)
     key = nkey(key)

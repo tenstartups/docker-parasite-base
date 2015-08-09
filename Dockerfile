@@ -13,6 +13,10 @@ ENV \
   HOME=/home/12factor \
   RUBYLIB=/home/12factor/lib
 
+# Install gems.
+RUN gem install --no-ri --no-rdoc \
+  httparty
+
 # Set the working directory.
 WORKDIR "/home/12factor"
 
