@@ -17,4 +17,4 @@ until $(/opt/bin/etcdctl ls >/dev/null 2>&1) ; do
   sleep 5
 done
 echo "Finished waiting for etcd to start responding."
-/opt/bin/send-notification error "Finished waiting for \`etcd\` to start responding."
+/opt/bin/send-notification success "Finished waiting for \`etcd\` to start responding."
