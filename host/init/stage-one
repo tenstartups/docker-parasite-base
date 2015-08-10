@@ -20,8 +20,13 @@ fi
 
 # Copy the docker configuration file from root to the core user to ensure we
 # don't get authentication problems with docker regardless of user
-cp -fv "/root/.dockercfg" "/home/core/.dockercfg"
-chown core:core "/home/core/.dockercfg"
+[ -f "/root/.dockercfg" ] && \
+  cp -fv "/root/.dockercfg" "/home/core/.dockercfg" && \
+  chown core:core "/home/core/.dockercfg"
+[ -f "/root/.docker/config.json" ] && \
+  mkdir -p "/home/core/.docker" && \
+  cp -fv "/root/.docker/config.json" "/home/core/.docker/config.json" && \
+  chown -R core:core "/home/core/.docker"
 
 # Symlink the 12factor directory to the root
 ln -nfs "/var/run<%= getenv!(:config_directory) %>" "<%= getenv!(:config_directory) %>"
