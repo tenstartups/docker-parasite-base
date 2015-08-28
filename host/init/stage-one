@@ -8,13 +8,13 @@ set -e
 
 # Make sure we are running at root
 if ! [ "$(whoami)" = "root" ]; then
-  echo >&2 "Twelve-factor stage one initialization must be run as root!"
+  echo >&2 "Parasite stage one initialization must be run as root!"
   exit 1
 fi
 
-# Make sure the twelve-factor environment file is in place
-if ! [ -f "/12factor-config.env" ]; then
-  echo >&2 "Missing twelve-factor initialization environment file /12factor-config.env!"
+# Make sure the parasite environment file is in place
+if ! [ -f "/parasite-config.env" ]; then
+  echo >&2 "Missing parasite initialization environment file /parasite-config.env!"
   exit 1
 fi
 
@@ -29,12 +29,12 @@ fi
   cp -fv "/root/.dockercfg" "/home/core/.dockercfg" && \
   chown core:core "/home/core/.dockercfg"
 
-# Symlink the 12factor directory to the root
+# Symlink the parasite directory to the root
 ln -nfs "/var/run<%= getenv!(:config_directory) %>" "<%= getenv!(:config_directory) %>"
 
 # Move the stage 2 init service directly to the systemd run directory
-if [ -f "<%= getenv!(:config_directory) %>/systemd/12factor-init-stage-two.service" ]; then
-  mv -fv "<%= getenv!(:config_directory) %>/systemd/12factor-init-stage-two.service" "/var/run/systemd/system"
+if [ -f "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.service" ]; then
+  mv -fv "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.service" "/var/run/systemd/system"
 fi
 
 # Create symlinks for all systemd units in the systemd directory
@@ -51,12 +51,12 @@ done
 
 # Create a symlink for the environment profile
 mkdir -p "/etc/profile.d"
-ln -fsv "<%= getenv!(:config_directory) %>/env/profile.sh" "/etc/profile.d/12factor-env.sh"
+ln -fsv "<%= getenv!(:config_directory) %>/env/profile.sh" "/etc/profile.d/parasite-env.sh"
 
 # Reload the systemctl daemon to load any new systemd units
 systemctl daemon-reload
 
 # Start the stage two initialization and exit
-systemctl start 12factor-init-stage-two &
+systemctl start parasite-init-stage-two &
 
 exit 0

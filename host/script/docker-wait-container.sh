@@ -18,7 +18,7 @@ while [[ ${test_number} < ${MAX_CHECKS} ]]; do
   test_number=$(( test_number + 1 ))
   CONTAINER_RUNNING=`/usr/bin/docker inspect -f {{.State.Running}} ${DOCKER_CONTAINER_NAME} 2>/dev/null || true`
   if [ ${test_number} = ${MAX_CHECKS} ] || [ "${CONTAINER_RUNNING}" = "true" ]; then break; fi
-  echo "Waiting ${next_test_wait} seconds for ${DOCKER_CONTAINER_NAME} container to start..."
+  echo "Waiting for ${DOCKER_CONTAINER_NAME} container to start..."
   sleep ${next_test_wait}
   next_test_wait=$(( next_test_wait * 2 ))
 done

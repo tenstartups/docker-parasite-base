@@ -14,7 +14,7 @@ fi
 
 /opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
-  --volumes-from ${DOCKER_CONTAINER_12FACTOR_DATA} \
+  --volumes-from ${DOCKER_CONTAINER_PARASITE_DATA} \
   ${DOCKER_IMAGE_SHELL} \
   sh -c " \
     mkdir -p ${DATA_SUBDIRECTORY} && \

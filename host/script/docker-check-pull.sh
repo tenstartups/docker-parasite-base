@@ -11,7 +11,7 @@ if [ -z "${DOCKER_IMAGE_NAME}" ]; then
 fi
 
 # Parse the image name into its parts
-# ex. "tenstartups/coreos-12factor-init:latest"
+# ex. "tenstartups/coreos-parasite-init:latest"
 IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
 image_tag=${image_tag:-latest}
 image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')

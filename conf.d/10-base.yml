@@ -50,8 +50,8 @@ host_files:
 
 systemd_units:
 
-  - name: 12factor-init-stage-two.service
-    source: systemd/12factor-init-stage-two.service
+  - name: parasite-init-stage-two.service
+    source: systemd/parasite-init-stage-two.service
   - name: install-tools.service
     source: systemd/install-tools.service
   - name: swapfile.service

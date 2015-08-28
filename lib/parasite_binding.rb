@@ -3,7 +3,7 @@
 require 'httparty'
 require 'resolv'
 
-class TwelveFactorBinding
+class ParasiteBinding
   def getenv(key, fail_on_blank = false)
     key = nkey(key)
     value = ENV[key]

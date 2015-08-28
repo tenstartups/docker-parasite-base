@@ -1,4 +1,4 @@
-DOCKER_IMAGE_NAME=tenstartups/coreos-12factor-base
+DOCKER_IMAGE_NAME=tenstartups/coreos-parasite-base
 
 clean_build: Dockerfile
 	docker build --no-cache=true -t ${DOCKER_IMAGE_NAME} .

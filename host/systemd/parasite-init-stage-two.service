@@ -1,7 +1,7 @@
 [Unit]
-Description=CoreOS twelve-factor stage two initialization
-Requires=12factor-init-stage-one.service
-After=12factor-init-stage-one.service
+Description=CoreOS parasite stage two initialization
+Requires=parasite-init-stage-one.service
+After=parasite-init-stage-one.service
 
 [Service]
 User=root
