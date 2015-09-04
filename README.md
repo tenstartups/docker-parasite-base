@@ -52,8 +52,7 @@ coreos:
       content: |
         [Unit]
         Description=CoreOS parasite stage one initialization
-        Requires=systemd-networkd.service docker.service
-        After=systemd-networkd.service docker.service
+        Requires=network-online.target docker.service
 
         [Service]
         User=root
