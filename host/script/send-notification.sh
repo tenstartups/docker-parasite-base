@@ -28,7 +28,7 @@ else
     --env-file="<%= getenv!(:config_directory) %>/env/docker.env" \
     -v "${FILE_ATTACHMENT}:/tmp/$(basename ${FILE_ATTACHMENT}):ro" \
     -e LOGSPOUT=ignore \
-    -e NOTIFIER_SENDER=${SENDER} \
+    -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
     -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \
     --hostname=notifier.${DOCKER_HOSTNAME_FULL} \
