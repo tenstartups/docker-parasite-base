@@ -6,6 +6,12 @@ set -e
 # second stage initialization.  This stage should NOT perform anything complicated
 # such as docker operations.
 
+# Abort stage one if environment is set
+if [ "${ABORT_PARASITE_INIT_STAGE_ONE}" = "true" ]; then
+  echo >&2 "Aborting parasite stage one initialization per ABORT_PARASITE_INIT_STAGE_ONE environment variable"
+  exit 1
+fi
+
 # Make sure we are running at root
 if ! [ "$(whoami)" = "root" ]; then
   echo >&2 "Parasite stage one initialization must be run as root!"

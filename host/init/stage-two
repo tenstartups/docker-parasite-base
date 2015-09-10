@@ -8,6 +8,12 @@ set -e
 # order serially.  Note however that cloud-config yml initializers are spawned
 # in parallel and cannot be guaranteed to run in order.
 
+# Abort stage two if environment is set
+if [ "${ABORT_PARASITE_INIT_STAGE_TWO}" = "true" ]; then
+  echo >&2 "Aborting parasite stage two initialization per ABORT_PARASITE_INIT_STAGE_TWO environment variable"
+  exit 1
+fi
+
 # Pre-pull all docker images at the start to ensure a smoother initialization
 echo "Pre-pulling all required docker images"
 systemctl start docker-check-image-update.service

@@ -7,5 +7,7 @@ After=parasite-init-stage-one.service
 User=root
 Type=oneshot
 RemainAfterExit=true
+EnvironmentFile=/parasite-config.env
+EnvironmentFile=-/parasite-config-ext.env
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 ExecStart=<%= getenv!(:config_directory) %>/init/stage-two

@@ -12,7 +12,7 @@ umask 0000
 (
   flock --exclusive --wait 300 200 || exit 1
   volume_container_ids=($(docker ps --no-trunc -a -q -f "label=${DOCKER_VOLUME_CONTAINER_LABEL}"))
-  for container_id in $(docker ps --no-trunc -a -q -f 'status=exited'); do
+  for container_id in $(docker ps --no-trunc -a -q -f 'status=created' -f 'status=exited'); do
     if [[ " ${volume_container_ids[*]} " = *" ${container_id} "* ]]; then continue; fi
     echo "Removing docker container ${container_id}"
     docker rm -v ${container_id} || true
