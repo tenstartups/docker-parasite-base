@@ -43,11 +43,19 @@ else
 fi
 
 # Extract the basic auth token from the docker login config file
-[ -f "/root/.docker/config.json" ] && \
-  auth_token=$(cat "/root/.docker/config.json" | "/opt/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{ print $2 }' | awk 'gsub(/["]/, "")')
+[ -f "${HOME}/.docker/config.json" ] && \
+  auth_token=$(cat "${HOME}/.docker/config.json" | \
+    "/opt/bin/json-parse" 2>/dev/null | \
+    grep \\[\"auths\",\"${registry_auth_key}\",\"auth\"\\] | \
+    awk '{ print $2 }' | \
+    awk 'gsub(/["]/, "")')
 # Legacy configuration file (pre Docker 1.7)
-[ -f "/root/.dockercfg" ] && \
-  auth_token=$(cat "/home/core/.dockercfg" | "/opt/bin/json-parse" 2>/dev/null | grep \\[\"${registry_auth_key}\",\"auth\"\\] | awk '{ print $2 }' | awk 'gsub(/["]/, "")')
+[ -f "${HOME}/.dockercfg" ] && \
+  auth_token=$(cat "${HOME}/.dockercfg" | \
+  "/opt/bin/json-parse" 2>/dev/null | \
+  grep \\[\"${registry_auth_key}\",\"auth\"\\] | \
+  awk '{ print $2 }' | \
+  awk 'gsub(/["]/, "")')
 
 # Get the remote image id for the given tag
 if [ -z "${private_registry_host}" ]; then
