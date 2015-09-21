@@ -6,7 +6,7 @@ set -e
 if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA})" ]; then
   docker create \
     --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
-    --label ${DOCKER_CONTAINER_PARASITE_DATA} \
+    --label ${DOCKER_CONTAINER_PARASITE_DATA/-/_} \
     --volume <%= getenv!(:data_directory) %> \
     --name ${DOCKER_CONTAINER_PARASITE_DATA} \
     ${DOCKER_IMAGE_PARASITE_DATA}

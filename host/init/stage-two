@@ -28,7 +28,7 @@ if ! [ -z "${DOCKER_IMAGE_PARASITE_CONFIG}" ] && ! [ -z "${DOCKER_CONTAINER_PARA
   /opt/bin/docker-check-remove ${DOCKER_CONTAINER_PARASITE_CONFIG}
   /usr/bin/docker run \
     --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
-    --label ${DOCKER_CONTAINER_PARASITE_CONFIG} \
+    --label ${DOCKER_CONTAINER_PARASITE_CONFIG/-/_} \
     --volume <%= getenv!(:config_directory) %> \
     --env-file=/parasite-config.env \
     --hostname ${DOCKER_HOSTNAME} \
@@ -43,7 +43,7 @@ if ! [ -z "${DOCKER_IMAGE_PARASITE_DATA}" ] && ! [ -z "${DOCKER_CONTAINER_PARASI
   if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA})" ]; then
     /usr/bin/docker create \
       --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
-      --label ${DOCKER_CONTAINER_PARASITE_DATA} \
+      --label ${DOCKER_CONTAINER_PARASITE_DATA/-/_} \
       --volume <%= getenv!(:data_directory) %> \
       --name ${DOCKER_CONTAINER_PARASITE_DATA} \
       ${DOCKER_IMAGE_PARASITE_DATA}
