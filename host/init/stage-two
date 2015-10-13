@@ -40,7 +40,8 @@ fi
 # Create the parasite data volume container if not already created
 if ! [ -z "${DOCKER_IMAGE_PARASITE_DATA}" ] && ! [ -z "${DOCKER_CONTAINER_PARASITE_DATA}" ]; then
   /opt/bin/docker-check-pull ${DOCKER_IMAGE_PARASITE_DATA}
-  if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA/-/_})" ]; then
+  if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA})" ] && \
+     [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA/-/_})" ]; then
     /usr/bin/docker create \
       --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
       --label ${DOCKER_CONTAINER_PARASITE_DATA/-/_} \
