@@ -8,7 +8,7 @@ DOCKER_IMAGE_ENV_REGEX="^\s*DOCKER_IMAGE_([_A-Z0-9]+)=(.+)\s*$"
 old_umask=`umask`
 umask 0000
 
-# Cleanup stale containers (excluding containers labelled as volume containers)
+# Cleanup stale containers (excluding containers labeled as volume containers)
 (
   flock --exclusive --wait 300 200 || exit 1
   volume_container_ids=($(docker ps --no-trunc -a -q -f "label=${DOCKER_VOLUME_CONTAINER_LABEL}"))
