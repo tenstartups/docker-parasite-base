@@ -14,8 +14,7 @@ ENV \
   RUBYLIB=/home/parasite/lib
 
 # Install gems.
-RUN gem install --no-ri --no-rdoc \
-  httparty
+RUN gem install --no-ri --no-rdoc httparty
 
 # Set the working directory.
 WORKDIR "/home/parasite"
@@ -23,12 +22,12 @@ WORKDIR "/home/parasite"
 # Add files to the container.
 COPY conf.d conf.d
 COPY lib lib
-COPY docker-entrypoint.rb /entrypoint
+COPY docker-entrypoint.rb /docker-entrypoint
 # The directory name under the parasite directory must match the name of the conf.d script
 COPY host 10-base/host
 
 # Set the entrypoint script.
-ENTRYPOINT ["/entrypoint"]
+ENTRYPOINT ["/docker-entrypoint"]
 
 # Set the default command
 CMD ["/bin/bash"]
