@@ -143,7 +143,6 @@ class ParasiteConfig
     end
     if network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?
       STDERR.puts 'CoreOS IPv4 address not found in environment, did you run docker with --env-file=/etc/environment?'
-      exit 1
     end
 
     # Build the systemd, docker and profile environment files
