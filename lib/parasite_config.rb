@@ -101,16 +101,14 @@ class ParasiteConfig
         STDERR.puts "Systemd unit '#{unit['name']}' already exists."
         exit 1
       end
-      unless unit['source'] && unit['source'].length > 0
-        STDERR.puts 'Mandatory systemd unit source not specified.'
-        exit 1
+      if unit['source'] && unit['source'].length > 0
+        unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
+        unless File.exist?(unit['source'])
+          STDERR.puts "Systemd unit source '#{unit['source']}' not found."
+          exit 1
+        end
+        deploy_file(unit['source'], unit['path'], '0644')
       end
-      unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
-      unless File.exist?(unit['source'])
-        STDERR.puts "Systemd unit source '#{unit['source']}' not found."
-        exit 1
-      end
-      deploy_file(unit['source'], unit['path'], '0644')
     end
 
     # Create the service start file

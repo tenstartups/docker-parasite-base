@@ -15,11 +15,8 @@ fi
 container_image_id=$(/usr/bin/docker inspect -f {{.Image}} ${DOCKER_CONTAINER_NAME} 2>/dev/null || true)
 container_id=$(/usr/bin/docker inspect -f {{.Id}} ${container_image_id} 2>/dev/null || true)
 if ! [ -z "$container_id" ]; then
-  old_umask=`umask`
-  umask 0000
-  (
-    flock --exclusive --wait 30 200 || exit 1
+  old_umask=`umask` && umask 000 && exec 200>/tmp/.docker.lockfile && umask ${old_umask}
+  if flock --exclusive --wait 30 200; then
     docker rm -f -v "${DOCKER_CONTAINER_NAME}"
-  ) 200>/tmp/.docker.lockfile
-  umask $old_umask
+  fi
 fi
