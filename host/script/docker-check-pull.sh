@@ -53,8 +53,9 @@ fi
 # Output a message if we have a new image
 new_image_id=$(docker images --no-trunc | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
 if [ "${new_image_id}" != "${image_id}" ]; then
-  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_id})"
-  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${new_image_id})\`"
+  short_image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${short_image_id})"
+  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${short_image_id})\`"
 fi
 
 # Update the id file if we have a new image
