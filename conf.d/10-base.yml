@@ -58,8 +58,6 @@ systemd_units:
     source: systemd/swapfile.service
   - name: newrelic-agent.service
     source: systemd/newrelic-agent.service
-  - name: newrelic-sysmond.service
-    source: systemd/newrelic-sysmond.service
   - name: etcdd.service
     source: systemd/etcdd.service
   - name: docker-check-image-update.timer
