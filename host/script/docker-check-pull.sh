@@ -41,7 +41,7 @@ old_umask=`umask` && umask 000 && exec 200>/tmp/.docker.lockfile && umask ${old_
 if flock --exclusive --wait 300 200; then
   docker pull "${DOCKER_IMAGE_NAME}" | {
     while IFS= read -r line; do
-      if [[ ${line} =~ .*Pulling\sfs|layer.* ]] && [ "${notified_new_image}" != "true" ]; then
+      if [[ ${line} =~ .*Pulling\sfs\slayer.* ]] && [ "${notified_new_image}" != "true" ]; then
         echo "Pulling new docker image ${DOCKER_IMAGE_NAME}"
         /opt/bin/send-notification warn "Pulling new docker image \`${DOCKER_IMAGE_NAME}\`"
         notified_new_image=true
