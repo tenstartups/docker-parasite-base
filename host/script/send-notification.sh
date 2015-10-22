@@ -1,8 +1,7 @@
 #!/bin/bash +x
 
-# Make sure we don't get into an endless reentry loop
+# Prevent re-entry into this script
 if [ "${SEND_NOTIFICATION_ENTRY_COUNT:-0}" -gt 0 ]; then
-  echo "Send notification entry recursion detected"
   exit 0
 else
   export SEND_NOTIFICATION_ENTRY_COUNT=$((SEND_NOTIFICATION_ENTRY_COUNT+1))

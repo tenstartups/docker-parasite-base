@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# Prevent re-entry into this script
+if [ "${DOCKER_CHECK_PULL_ENTRY_COUNT:-0}" -gt 0 ]; then
+  exit 0
+else
+  export DOCKER_CHECK_PULL_ENTRY_COUNT=$((DOCKER_CHECK_PULL_ENTRY_COUNT+1))
+fi
+
 # Set environment variables with defaults
 DOCKER_IMAGE_NAME="${1:-$DOCKER_IMAGE_NAME}"
 
@@ -29,34 +36,32 @@ if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
   umask ${old_umask}
 fi
 
-# Pull the image if necessary
-new_image_pulled=false
-
-# Obtain a lock for this section
+# Pull the docker image from the registry
 old_umask=`umask` && umask 000 && exec 200>/tmp/.docker.lockfile && umask ${old_umask}
 if flock --exclusive --wait 300 200; then
-
-  # Pull the newer image
-  docker pull "${DOCKER_IMAGE_NAME}" > /dev/null
-  new_image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
-
-  # Check if we got a new image
-  if [ "${new_image_id}" != "${image_id}" ]; then
-    new_image_pulled=true
-    echo "Pulled new docker image ${DOCKER_IMAGE_NAME} (${image_id} => ${new_image_id})"
-
-    # Dump the new image id to the id file
-    old_umask=`umask` && umask 000
-    mkdir -p "$(dirname ${image_id_file})"
-    [ -f "${image_id_file}" ] && cp -f "${image_id_file}" "${image_id_file}.prev"
-    printf ${new_image_id} > "${image_id_file}"
-    umask ${old_umask}
-  fi
-
+  docker pull "${DOCKER_IMAGE_NAME}" | {
+    while IFS= read -r line; do
+      if [[ ${line} =~ .*Pulling\sfs|layer.* ]] && [ "${notified_new_image}" != "true" ]; then
+        echo "Pulling new docker image ${DOCKER_IMAGE_NAME}"
+        /opt/bin/send-notification warn "Pulling new docker image \`${DOCKER_IMAGE_NAME}\`"
+        notified_new_image=true
+      fi
+    done
+  }
   flock --unlock 200
 fi
 
-# Send a message
-if [ "${new_image_pulled}" = "true" ]; then
-  /opt/bin/send-notification warn "Pulled new docker image \`${DOCKER_IMAGE_NAME} (${image_id} => ${new_image_id})\`"
+# Output a message if we have a new image
+new_image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+if [ "${new_image_id}" != "${image_id}" ]; then
+  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_id})"
+  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${new_image_id})\`"
+fi
+
+# Update the id file if we have a new image
+if [ "${new_image_id}" != "`cat ${image_id_file}`" ]; then
+  old_umask=`umask` && umask 000
+  mkdir -p "$(dirname ${image_id_file})"
+  printf ${new_image_id} > "${image_id_file}"
+  umask ${old_umask}
 fi
