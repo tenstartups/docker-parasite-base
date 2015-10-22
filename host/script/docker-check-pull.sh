@@ -21,7 +21,7 @@ fi
 # ex. "tenstartups/coreos-parasite-init:latest"
 IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
 image_tag=${image_tag:-latest}
-image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+image_id=$(docker images --no-trunc | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
 
 # Update the docker image name to include tag if it didn't have it
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
@@ -32,7 +32,6 @@ if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
   old_umask=`umask` && umask 000
   mkdir -p "$(dirname ${image_id_file})"
   printf ${image_id} > "${image_id_file}"
-  cp -pf "${image_id_file}" "${image_id_file}.prev"
   umask ${old_umask}
 fi
 
@@ -52,7 +51,7 @@ if flock --exclusive --wait 300 200; then
 fi
 
 # Output a message if we have a new image
-new_image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+new_image_id=$(docker images --no-trunc | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
 if [ "${new_image_id}" != "${image_id}" ]; then
   echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_id})"
   /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${new_image_id})\`"
