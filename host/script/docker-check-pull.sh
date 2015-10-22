@@ -57,4 +57,6 @@ if flock --exclusive --wait 300 200; then
 fi
 
 # Send a message
-[ "${new_image_pulled}" = "true" ] && /opt/bin/send-notification warn "Pulled new docker image \`${DOCKER_IMAGE_NAME} (${image_id} => ${new_image_id})\`"
+if [ "${new_image_pulled}" = "true" ]; then
+  /opt/bin/send-notification warn "Pulled new docker image \`${DOCKER_IMAGE_NAME} (${image_id} => ${new_image_id})\`"
+fi
