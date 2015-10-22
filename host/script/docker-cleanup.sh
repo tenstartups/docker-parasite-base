@@ -13,6 +13,7 @@ if flock --exclusive --wait 300 200; then
     echo "Removing docker container ${container_id}"
     docker rm -v ${container_id} || true
   done
+  flock --unlock 200
 fi
 
 # Cleanup stale (untagged) images
@@ -22,6 +23,7 @@ if flock --exclusive --wait 300 200; then
     echo "Removing docker image ${image_id}"
     docker rmi ${image_id} || true
   done
+  flock --unlock 200
 fi
 
 # Cleanup tagged images that are not itemized in the environment list
@@ -33,4 +35,5 @@ if flock --exclusive --wait 300 200; then
     echo "Removing docker image ${image_name}"
     docker rmi ${image_name} || true
   done < <(docker images | grep -v "REPOSITORY" | grep -v "<none>" | awk '{print $1 ":" $2}')
+  flock --unlock 200
 fi

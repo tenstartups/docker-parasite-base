@@ -52,6 +52,8 @@ if flock --exclusive --wait 300 200; then
     printf ${new_image_id} > "${image_id_file}"
     umask ${old_umask}
   fi
+
+  flock --unlock 200
 fi
 
 # Send a message

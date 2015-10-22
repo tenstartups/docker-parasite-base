@@ -18,5 +18,6 @@ if ! [ -z "$container_id" ]; then
   old_umask=`umask` && umask 000 && exec 200>/tmp/.docker.lockfile && umask ${old_umask}
   if flock --exclusive --wait 30 200; then
     docker rm -f -v "${DOCKER_CONTAINER_NAME}"
+    flock --unlock 200
   fi
 fi
