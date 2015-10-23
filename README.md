@@ -60,7 +60,7 @@ coreos:
         RemainAfterExit=true
         EnvironmentFile=/parasite-config.env
         EnvironmentFile=-/parasite-config-ext.env
-        ExecStartPre=/usr/bin/bash -c "[ -f '/root/.docker/config.json' ] || [ -f '/root/.dockercfg' ] || docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
+        ExecStartPre=/usr/bin/bash -c "[ -f '/root/.docker/config.json' ] || docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
         ExecStartPre=/usr/bin/docker run --rm \
           -v /var/run/${CONFIG_DIRECTORY}:${CONFIG_DIRECTORY} \
           --env-file=/etc/environment \
