@@ -16,7 +16,6 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
 if [ -z "${FILE_ATTACHMENT}" ]; then
   docker run --rm \
     --env-file="<%= getenv!(:config_directory) %>/env/docker.env" \
-    -e LOGSPOUT=ignore \
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
     --hostname=notifier.${DOCKER_HOSTNAME_FULL} \
@@ -26,7 +25,6 @@ else
   docker run --rm \
     --env-file="<%= getenv!(:config_directory) %>/env/docker.env" \
     -v "${FILE_ATTACHMENT}:/tmp/$(basename ${FILE_ATTACHMENT}):ro" \
-    -e LOGSPOUT=ignore \
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
     -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \

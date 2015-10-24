@@ -53,13 +53,12 @@ fi
 # Output a message if we have a new image
 new_image_id=$(docker images --no-trunc | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
 if [ "${new_image_id}" != "${image_id}" ]; then
-  short_image_id=$(docker images | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
-  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${short_image_id})"
-  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${short_image_id})\`"
+  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_id:0:12})"
+  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${new_image_id:0:12})\`"
 fi
 
 # Update the id file if we have a new image
-if [ "${new_image_id}" != "`cat ${image_id_file}`" ]; then
+if ! [ -f "${image_id_file}" ] || [ "${new_image_id}" != "`cat ${image_id_file}`" ]; then
   old_umask=`umask` && umask 000
   mkdir -p "$(dirname ${image_id_file})"
   printf ${new_image_id} > "${image_id_file}"

@@ -39,7 +39,7 @@ if [ -f "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.servi
 fi
 
 # Create symlinks for all systemd units in the systemd directory
-find "<%= getenv!(:config_directory) %>/systemd" -type f | while read f; do
+find "<%= getenv!(:config_directory) %>/systemd" -type f \( -name "*.path" -or -name "*.service" -or -name "*.timer" \) | while read f; do
   ln -fsv "$f" "/var/run/systemd/system/`basename $f`"
 done
 
