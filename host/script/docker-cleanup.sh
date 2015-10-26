@@ -13,7 +13,11 @@ for container_id in $(docker ps --no-trunc -a -q -f 'status=created' -f 'status=
     echo "Removing docker container ${container_id}"
     docker rm -v ${container_id} || true
     flock --unlock 200
-    /opt/bin/send-notification success "Removed docker container \`${container_id:0:12}\`"
+    if [ -z `docker inspect -f {{.Id}} ${container_id}` ]; then
+      /opt/bin/send-notification success "Removed docker container \`${container_id:0:12}\`"
+    else
+      /opt/bin/send-notification error "Failed to remove docker container \`${container_id:0:12}\`"
+    fi
   fi
 done
 
@@ -24,7 +28,11 @@ for image_id in $(docker images --no-trunc -q -f 'dangling=true'); do
     echo "Removing docker image ${image_id}"
     docker rmi ${image_id} || true
     flock --unlock 200
-    /opt/bin/send-notification success "Removed docker image \`${image_id:0:12}\`"
+    if [ -z `docker inspect -f {{.Id}} ${image_id}` ]; then
+      /opt/bin/send-notification success "Removed docker image \`${image_id:0:12}\`"
+    else
+      /opt/bin/send-notification error "Failed to remove docker image \`${image_id:0:12}\`"
+    fi
   fi
 done
 
@@ -37,6 +45,10 @@ while read -r image_name ; do
     echo "Removing docker image ${image_name}"
     docker rmi ${image_name} || true
     flock --unlock 200
-    /opt/bin/send-notification success "Removed docker image \`${image_name}\`"
+    if [ -z `docker inspect -f {{.Id}} ${image_name}` ]; then
+      /opt/bin/send-notification success "Removed docker image \`${image_name}\`"
+    else
+      /opt/bin/send-notification error "Failed to remove docker image \`${image_name}\`"
+    fi
   fi
 done < <(docker images | grep -v "REPOSITORY" | grep -v "<none>" | awk '{print $1 ":" $2}')
