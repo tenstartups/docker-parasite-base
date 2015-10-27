@@ -23,9 +23,8 @@ coreos:
         Accept=yes
 
     - name: docker.service
-      runtime: yes
       drop-ins:
-        - name: 50-log-level.conf
+        - name: 50-docker-opts.conf
           content: |
             [Service]
             Environment='DOCKER_OPTS=--log-level=warn'

@@ -21,7 +21,7 @@ fi
 # ex. "tenstartups/coreos-parasite-init:latest"
 IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
 image_tag=${image_tag:-latest}
-image_id=$(docker images --no-trunc | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+image_id=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} 2>/dev/null || true)
 
 # Update the docker image name to include tag if it didn't have it
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
@@ -51,7 +51,7 @@ if flock --exclusive --wait 300 200; then
 fi
 
 # Output a message if we have a new image
-new_image_id=$(docker images --no-trunc | grep -E "^${repository}\s+${image_tag}\s+" | head | awk '{ print $3 }')
+new_image_id=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} 2>/dev/null || true)
 if [ "${new_image_id}" != "${image_id}" ]; then
   echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_id:0:12})"
   /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${new_image_id:0:12})\`"
