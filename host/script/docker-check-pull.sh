@@ -31,7 +31,7 @@ image_id_file="<%= getenv!(:config_directory) %>/docker/${DOCKER_IMAGE_NAME//\//
 if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
   old_umask=`umask` && umask 000
   mkdir -p "$(dirname ${image_id_file})"
-  printf ${image_id} > "${image_id_file}"
+  printf "${image_id}" > "${image_id_file}"
   umask ${old_umask}
 fi
 
@@ -61,6 +61,6 @@ fi
 if ! [ -f "${image_id_file}" ] || [ "${new_image_id}" != "`cat ${image_id_file}`" ]; then
   old_umask=`umask` && umask 000
   mkdir -p "$(dirname ${image_id_file})"
-  printf ${new_image_id} > "${image_id_file}"
+  printf "${new_image_id}" > "${image_id_file}"
   umask ${old_umask}
 fi

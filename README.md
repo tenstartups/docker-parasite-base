@@ -56,11 +56,14 @@ coreos:
 
         [Service]
         User=root
-        Type=oneshot
         RemainAfterExit=true
+        Restart=on-failure
+        RestartSec=10s
+        TimeoutStartSec=300
+        TimeoutStopSec=30
         EnvironmentFile=/parasite-config.env
         EnvironmentFile=-/parasite-config-ext.env
-        ExecStartPre=/usr/bin/bash -c "[ -f '/root/.docker/config.json' ] || docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
+        ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
         ExecStartPre=/usr/bin/docker run --rm \
           -v /var/run/${CONFIG_DIRECTORY}:${CONFIG_DIRECTORY} \
           --env-file=/etc/environment \
@@ -68,7 +71,7 @@ coreos:
           --net host \
           ${DOCKER_IMAGE_PARASITE_CONFIG} \
           host
-        ExecStart=/usr/bin/sh -c "/var/run/${CONFIG_DIRECTORY}/init/stage-one"
+        ExecStart=/bin/sh -c "/var/run/${CONFIG_DIRECTORY}/init/stage-one"
 ```
 
 The key requirements are to set the server hostname (FQDN), create a /parasite-config.env file containing any required ERB environment variables, and create a systemd unit that logs into your Docker registry, runs your parasite image in host mode, then launches the parasite stage one initialization script.

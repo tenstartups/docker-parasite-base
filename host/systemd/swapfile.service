@@ -3,8 +3,11 @@ Description=Swap file management service
 
 [Service]
 User=root
-Type=oneshot
 RemainAfterExit=true
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=300
+TimeoutStopSec=30
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 Environment=SERVICE_NAME=swap-file
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${SERVICE_NAME}` service"

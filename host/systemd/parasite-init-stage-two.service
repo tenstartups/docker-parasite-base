@@ -5,8 +5,11 @@ After=parasite-init-stage-one.service
 
 [Service]
 User=root
-Type=oneshot
 RemainAfterExit=true
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=300
+TimeoutStopSec=30
 EnvironmentFile=/parasite-config.env
 EnvironmentFile=-/parasite-config-ext.env
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
