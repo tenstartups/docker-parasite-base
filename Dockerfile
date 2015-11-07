@@ -22,7 +22,7 @@ WORKDIR "/home/parasite"
 # Add files to the container.
 COPY conf.d conf.d
 COPY lib lib
-COPY docker-entrypoint.rb /docker-entrypoint
+COPY entrypoint.rb /docker-entrypoint
 # The directory name under the parasite directory must match the name of the conf.d script
 COPY host 10-base/host
 
