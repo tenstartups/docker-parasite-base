@@ -20,7 +20,7 @@ systemctl start docker-check-image-update.service
 echo "Finished pre-pulling all required docker images"
 
 # Notify that we started
-/opt/bin/send-notification warn "Starting \`coreos-parasite\` initialization"
+/opt/bin/send-notification warn "Starting \`docker-parasite\` initialization"
 
 # (Re-)create the parasite configuration volume container
 if ! [ -z "${DOCKER_IMAGE_PARASITE_CONFIG}" ] && ! [ -z "${DOCKER_CONTAINER_PARASITE_CONFIG}" ]; then
@@ -62,6 +62,7 @@ fi
 
 # Start base systemd services and wait
 systemctl start install-tools.service &
+<% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
 if ! [ -z "${SWAP_FILE_SIZE}" ]; then
   systemctl start swapfile.service &
 fi
@@ -71,14 +72,17 @@ fi
 if [ -f "<%= getenv!(:config_directory) %>/env/etcd.env" ]; then
   systemctl start etcdd.service &
 fi
+<% end %>___ERB_REMOVE_LINE___
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order
 find "<%= getenv!(:config_directory) %>/init.d" -type f | sort | uniq | while read file; do
+  <% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
   if [[ "$file" == *.yml ]]; then
     echo "Executing parasite initialization cloud-config $file..."
     coreos-cloudinit --from-file="$file"
   fi
+  <% end %>___ERB_REMOVE_LINE___
   if [[ "$file" == *.sh ]]; then
     echo "Executing parasite initialization script $file..."
     "$file"
@@ -94,6 +98,6 @@ if [ -f "<%= getenv!(:config_directory) %>/systemd/start" ]; then
 fi
 
 # Notify that we finished
-/opt/bin/send-notification success "Finished \`coreos-parasite\` initialization"
+/opt/bin/send-notification success "Finished \`docker-parasite\` initialization"
 
 exit 0

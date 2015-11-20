@@ -1,15 +1,17 @@
 #
-# CoreOS application initialization and configuration base docker image
+# Parasite server initialization and configuration docker image base for HypriotOS
+# running on a Raspberry Pi
 #
-# http://github.com/tenstartups/coreos-parasite-base-docker
+# http://github.com/tenstartups/parasite-docker
 #
 
-FROM tenstartups/alpine-ruby:latest
+FROM tenstartups/rpi-alpine-ruby:latest
 
 MAINTAINER Marc Lennox <marc.lennox@gmail.com>
 
 # Set environment
 ENV \
+  PARASITE_OS=hypriotos \
   HOME=/home/parasite \
   RUBYLIB=/home/parasite/lib
 

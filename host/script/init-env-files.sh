@@ -37,8 +37,10 @@ cat << EOF > "$temp_file"
 DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
 DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}
+<% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
 HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
+<% end %>___ERB_REMOVE_LINE___
 EOF
 env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.docker.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort >> "${ENV_TARGET_DIR}/docker.env"
@@ -54,8 +56,10 @@ cat << EOF > "$temp_file"
 DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
 DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}
+<% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
 HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
+<% end %>___ERB_REMOVE_LINE___
 EOF
 env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.systemd.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort >> "${ENV_TARGET_DIR}/systemd.env"
@@ -73,8 +77,10 @@ PATH=\$PATH:/opt/bin
 DOCKER0_IP_ADDRESS=${DOCKER0_IP_ADDRESS}
 DOCKER_HOSTNAME=${DOCKER_HOSTNAME}
 DOCKER_HOSTNAME_FULL=${DOCKER_HOSTNAME_FULL}
+<% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
 HOST_PUBLIC_IP_ADDRESS=${COREOS_PUBLIC_IPV4}
 HOST_PRIVATE_IP_ADDRESS=${COREOS_PRIVATE_IPV4}
+<% end %>___ERB_REMOVE_LINE___
 EOF
 env_files=`find "${ENV_DIR}" -type f -and \( \( -name '*.profile.*' -and -name '*.env' \) -or \( -name '*.env' -and ! -name '*.*.env' \) \) -exec echo {} \;`
 cat $temp_file $env_files | grep -E "${ENVIRONMENT_REGEX}" | sort | sed -En "s/${ENVIRONMENT_REGEX}/export \1=\"\2\"/p" >> "${ENV_TARGET_DIR}/profile.sh"

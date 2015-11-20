@@ -1,5 +1,5 @@
 [Unit]
-Description=CoreOS parasite stage two initialization
+Description=Docker parasite stage two initialization
 Requires=parasite-init-stage-one.service
 After=parasite-init-stage-one.service
 

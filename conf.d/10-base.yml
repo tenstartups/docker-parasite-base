@@ -28,10 +28,12 @@ host_files:
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
+<% if getenv!(:parasite_os) == 'coreos' %>
 <% source_files(:host, 'init.d/*.yml') do |relative_path| %>
   - path: <%= getenv!(:config_directory) %>/<%= relative_path %>
     permissions: '0644'
     source: <%= relative_path %>
+<% end %>
 <% end %>
 
   # Script files
@@ -47,6 +49,11 @@ host_files:
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
+<% source_files(:host, "tools.d/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
+  - path: <%= getenv!(:config_directory) %>/<%= relative_path.gsub("tools.d/#{getenv!(:parasite_os)}/", 'tools.d/') %>
+    permissions: '0755'
+    source: <%= relative_path %>
+<% end %>
 
 systemd_units:
 
@@ -54,12 +61,14 @@ systemd_units:
     source: systemd/parasite-init-stage-two.service
   - name: install-tools.service
     source: systemd/install-tools.service
+<% if getenv!(:parasite_os) == 'coreos' %>
   - name: swapfile.service
     source: systemd/swapfile.service
   - name: newrelic-agent.service
     source: systemd/newrelic-agent.service
   - name: etcdd.service
     source: systemd/etcdd.service
+<% end %>
   - name: docker-check-image-update.timer
     start: true
     source: systemd/docker-check-image-update.timer

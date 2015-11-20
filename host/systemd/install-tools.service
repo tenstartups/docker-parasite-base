@@ -1,11 +1,10 @@
 [Unit]
-Description=CoreOS tools installation service
+Description=Operating system tools installation service
 
 [Service]
 User=root
 Type=oneshot
-WorkingDirectory=/home/core
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `%n`"
-ExecStart=/opt/bin/coreos-install-tools
+ExecStart=/opt/bin/install-tools
 ExecStartPost=-/opt/bin/send-notification success "Finished `%n`"

@@ -129,17 +129,19 @@ class ParasiteConfig
     # '--net host' parameter
     # It also assumes that the /etc/hostname file on the host has the host's FQDN
     network_env = {
-      'HOST_PUBLIC_IP_ADDRESS' => ENV['COREOS_PUBLIC_IPV4'],
-      'HOST_PRIVATE_IP_ADDRESS' => ENV['COREOS_PRIVATE_IPV4'],
       'DOCKER0_IP_ADDRESS' => (ip_address('docker0') rescue nil),
       'DOCKER_HOSTNAME' => ENV['HOSTNAME'].split('.').first,
       'DOCKER_HOSTNAME_FULL' => ENV['HOSTNAME']
     }
+    if ENV['DOCKER_OS'] == 'coreos'
+      network_env['HOST_PUBLIC_IP_ADDRESS'] = ENV['COREOS_PUBLIC_IPV4']
+      network_env['HOST_PRIVATE_IP_ADDRESS'] = ENV['COREOS_PRIVATE_IPV4']
+    end
     if network_env['DOCKER0_IP_ADDRESS'].nil?
       STDERR.puts 'Unable to find docker0 network adapter, did you run docker with --net=host?'
       exit 1
     end
-    if network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?
+    if ENV['DOCKER_OS'] == 'coreos' && (network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?)
       STDERR.puts 'CoreOS IPv4 address not found in environment, did you run docker with --env-file=/etc/environment?'
     end
 
