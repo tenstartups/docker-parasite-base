@@ -28,7 +28,7 @@ fi
 # don't get authentication problems with docker regardless of user
 mkdir -p "/home/<%= getenv!(:parasite_user) %>/.docker"
 cp -fv "/root/.docker/config.json" "/home/<%= getenv!(:parasite_user) %>/.docker/config.json"
-chown -R pi:pi "/home/<%= getenv!(:parasite_user) %>/.docker"
+chown -R <%= getenv!(:parasite_user) %>:<%= getenv!(:parasite_user) %> "/home/<%= getenv!(:parasite_user) %>/.docker"
 
 # Symlink the parasite directory to the root
 ln -nfs "/var/run<%= getenv!(:config_directory) %>" "<%= getenv!(:config_directory) %>"
