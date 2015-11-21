@@ -16,4 +16,4 @@ push: build
 	docker push ${DOCKER_IMAGE_NAME}
 
 run: build
-	docker run -it --rm --net=host ${DOCKER_IMAGE_NAME} ${ARGS}
+	docker run -it --rm --env-file=environment --net=host ${DOCKER_IMAGE_NAME} ${ARGS}
