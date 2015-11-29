@@ -1,16 +1,14 @@
-DOCKER_IMAGE_NAME=tenstartups/$(PARASITE_OS)-parasite-base
-DOCKER_ARCH := $(shell uname -m)
-ifneq (,$(findstring arm,$(DOCKER_ARCH)))
-	DOCKER_PLATFORM := rpi
-else
-	DOCKER_PLATFORM := x64
+PARASITE_OS ?= $(shell bash -c 'read -s -p "Parasite OS : " os; echo $$os')
+DOCKER_IMAGE_NAME := tenstartups/$(PARASITE_OS)-parasite-base
+ifeq ($(DOCKER_ARCH),rpi)
+	DOCKER_IMAGE_NAME := $(subst /,/$(DOCKER_ARCH)-,$(DOCKER_IMAGE_NAME))
 endif
 
-build: Dockerfile.${DOCKER_PLATFORM}
-	docker build --file Dockerfile.${DOCKER_PLATFORM} --tag ${DOCKER_IMAGE_NAME} .
+build: Dockerfile.$(DOCKER_ARCH)
+	docker build --file Dockerfile.$(DOCKER_ARCH) --tag $(DOCKER_IMAGE_NAME) .
 
-clean_build: Dockerfile.${DOCKER_PLATFORM}
-	docker build --no-cache --file Dockerfile.${DOCKER_PLATFORM} --tag ${DOCKER_IMAGE_NAME} .
+clean_build: Dockerfile.$(DOCKER_ARCH)
+	docker build --no-cache --file Dockerfile.$(DOCKER_ARCH) --tag $(DOCKER_IMAGE_NAME) .
 
 push: build
 	docker push ${DOCKER_IMAGE_NAME}
