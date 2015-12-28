@@ -63,7 +63,7 @@ fi
 # Start base systemd services and wait
 systemctl start install-tools.service &
 <% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
-if ! [ -z "${SWAP_FILE_SIZE}" ]; then
+if ! [ -z "${SWAP_FILE}" ] && ! [ -z "${SWAP_SIZE_MB}" ]; then
   systemctl start swapfile.service &
 fi
 if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then

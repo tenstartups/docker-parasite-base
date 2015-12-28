@@ -2,20 +2,24 @@
 set -e
 
 # Check for required environment variables
-if [ -z "${SWAP_FILE_SIZE}" ]; then
-  echo >&2 "Missing required environment variable SWAP_FILE_SIZE"
+if [ -z "${SWAP_FILE}" ]; then
+  echo >&2 "Missing required environment variable SWAP_FILE"
+  exit 1
+fi
+if [ -z "${SWAP_SIZE_MB}" ]; then
+  echo >&2 "Missing required environment variable SWAP_SIZE_MB"
   exit 1
 fi
 
-# Set environment with defaults
-SWAP_FILE="/${SWAP_FILE_SIZE}.swp"
-
 # Create and enable the swap file
-/usr/bin/fallocate -l ${SWAP_FILE_SIZE} "${SWAP_FILE}"
-/usr/bin/chmod 600 "${SWAP_FILE}"
-/usr/bin/chattr +C "${SWAP_FILE}"
-/usr/sbin/mkswap "${SWAP_FILE}"
-/usr/sbin/losetup -f "${SWAP_FILE}"
-/usr/sbin/sysctl vm.swappiness=10
-/usr/sbin/sysctl vm.vfs_cache_pressure=50
-/usr/sbin/swapon $(/usr/sbin/losetup -j ${SWAP_FILE} | /bin/cut -d : -f 1)
+mkdir -p "`dirname ${SWAP_FILE}`"
+[ -f "${SWAP_FILE}" ] && \
+  [ $((`stat -c%s "${SWAP_FILE}"` / 1024 / 1024)) != ${SWAP_SIZE_MB} ] && \
+  echo "Removing old swap file" && \
+  rm -rf "${SWAP_FILE}"
+fallocate -l ${SWAP_SIZE_MB}m "${SWAP_FILE}"
+chmod 600 "${SWAP_FILE}"
+mkswap "${SWAP_FILE}"
+sysctl vm.swappiness=10
+sysctl vm.vfs_cache_pressure=50
+swapon "${SWAP_FILE}"
