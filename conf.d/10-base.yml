@@ -42,6 +42,11 @@ host_files:
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
+<% source_files(:host, "script/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
+  - path: <%= getenv!(:config_directory) %>/<%= relative_path.gsub("script/#{getenv!(:parasite_os)}/", 'script/') %>
+    permissions: '0755'
+    source: <%= relative_path %>
+<% end %>
 
   # Tools installation scripts
 <% source_files(:host, 'tools.d/*.sh') do |relative_path| %>
