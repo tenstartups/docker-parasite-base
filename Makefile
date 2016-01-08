@@ -1,8 +1,4 @@
-PARASITE_OS ?= $(shell bash -c 'read -s -p "Parasite OS : " os; echo $$os')
 DOCKER_IMAGE_NAME := tenstartups/$(PARASITE_OS)-parasite-base
-ifeq ($(DOCKER_ARCH),rpi)
-	DOCKER_IMAGE_NAME := $(subst /,/$(DOCKER_ARCH)-,$(DOCKER_IMAGE_NAME))
-endif
 
 build: Dockerfile.$(DOCKER_ARCH)
 	docker build --file Dockerfile.$(DOCKER_ARCH) --tag $(DOCKER_IMAGE_NAME) .
