@@ -9,7 +9,7 @@ RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
-Environment=SERVICE_NAME=swap-file
+Environment=SERVICE_NAME=%n
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${SERVICE_NAME}` service"
 ExecStart=/opt/bin/coreos-enable-swap
 ExecStartPost=-/opt/bin/send-notification success "Started `${SERVICE_NAME}` service"

@@ -15,6 +15,7 @@ fi
 /opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
   --volumes-from ${DOCKER_CONTAINER_PARASITE_DATA} \
+  --net ${DOCKER_BRIDGE_NETWORK} \
   ${DOCKER_IMAGE_SHELL} \
   sh -c " \
     mkdir -p ${DATA_SUBDIRECTORY} && \

@@ -5,6 +5,7 @@ set -e
 /usr/bin/docker run -i --rm \
   --volumes-from ${DOCKER_CONTAINER_PARASITE_CONFIG} \
   --env-file=<%= getenv!(:config_directory) %>/env/etcdctl.env \
+  --net ${DOCKER_BRIDGE_NETWORK} \
   --link etcdd.service:etcd \
   ${DOCKER_IMAGE_ETCDCTL} \
   "$@"

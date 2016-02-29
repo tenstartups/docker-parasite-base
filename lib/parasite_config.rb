@@ -128,26 +128,25 @@ class ParasiteConfig
     # '--net host' parameter
     # It also assumes that the /etc/hostname file on the host has the host's FQDN
     network_env = {
-      'DOCKER0_IP_ADDRESS' => (ip_address('docker0') rescue nil),
       'DOCKER_HOSTNAME' => ENV['HOSTNAME'].split('.').first,
       'DOCKER_HOSTNAME_FULL' => ENV['HOSTNAME']
     }
     if ENV['PARASITE_OS'] == 'coreos'
       network_env['HOST_PUBLIC_IP_ADDRESS'] = ENV['COREOS_PUBLIC_IPV4']
       network_env['HOST_PRIVATE_IP_ADDRESS'] = ENV['COREOS_PRIVATE_IPV4']
-    end
-    if network_env['DOCKER0_IP_ADDRESS'].nil?
-      STDERR.puts 'Unable to find docker0 network adapter, did you run docker with --net=host?'
-      exit 1
-    end
-    if ENV['PARASITE_OS'] == 'coreos' && (network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?)
-      STDERR.puts 'CoreOS IPv4 address not found in environment, did you run docker with --env-file=/etc/environment?'
+      if network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?
+        STDERR.puts 'CoreOS IPv4 address not found in environment, did you run docker with --env-file=/etc/environment?'
+      end
     end
 
     # Build the systemd, docker and profile environment files
     %w( systemd.env docker.env profile.sh ).each do |env_type|
       File.open(File.join(File.join(ENV['CONFIG_DIRECTORY'], 'env'), env_type), 'w') do |env_file|
-        environment = network_env.clone
+        environment = {}
+        network_env.each { |k, v| environment[k] = v }
+        environment['DOCKER_VERSION'] = `docker version --format '{{.Server.Version}}'`.strip
+        environment['DOCKER_BRIDGE_NETWORK'] = 'parasite'
+        environment['DOCKER_BRIDGE_NETWORK'] = 'bridge' unless environment['DOCKER_VERSION'] =~ /^\s*1\.[6789]\.\d+\s*$/
         Dir["#{File.join(ENV['CONFIG_DIRECTORY'], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
           .sort.each do |env_part_file|

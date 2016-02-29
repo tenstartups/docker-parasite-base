@@ -14,6 +14,12 @@ if [ "${ABORT_PARASITE_INIT_STAGE_TWO}" = "true" ]; then
   exit 1
 fi
 
+# Create the default bridge network
+if ! [ "${DOCKER_BRIDGE_NETWORK}" = "bridge" ]; then
+  /usr/bin/docker network rm ${DOCKER_BRIDGE_NETWORK} || true
+  /usr/bin/docker network create --driver=bridge ${DOCKER_BRIDGE_NETWORK}
+fi
+
 # Pre-pull all docker images at the start to ensure a smoother initialization
 echo "Pre-pulling all required docker images"
 systemctl start docker-check-image-update.service
@@ -37,6 +43,7 @@ if ! [ -z "${DOCKER_IMAGE_PARASITE_CONFIG}" ] && ! [ -z "${DOCKER_CONTAINER_PARA
       --label ${DOCKER_CONTAINER_PARASITE_CONFIG/-/_} \
       --volume <%= getenv!(:config_directory) %> \
       --env-file=/parasite-config.env \
+      --net ${DOCKER_BRIDGE_NETWORK} \
       --hostname ${DOCKER_HOSTNAME} \
       --name ${DOCKER_CONTAINER_PARASITE_CONFIG} \
       ${DOCKER_IMAGE_PARASITE_CONFIG} \
