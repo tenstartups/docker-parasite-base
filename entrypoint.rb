@@ -30,4 +30,4 @@ when /host|container/
 end
 
 # Execute the passed in command if provided
-exec(*ARGV) if ARGV.size > 0
+exec(*ARGV) unless ARGV.empty?

@@ -7,7 +7,7 @@ class ParasiteBinding
   def getenv(key, fail_on_blank = false)
     key = nkey(key)
     value = ENV[key]
-    fail "Missing environment variable #{key}" if fail_on_blank && (value.nil? || value == '')
+    raise "Missing environment variable #{key}" if fail_on_blank && (value.nil? || value == '')
     value
   end
 
@@ -18,7 +18,7 @@ class ParasiteBinding
   def choose(key, choices = {}, fail_on_blank = false)
     value = getenv(key, fail_on_blank)
     choice = choices[value] || choices[value.to_sym]
-    fail "Missing choice for environment variable #{key} (#{value})" if fail_on_blank && (choice.nil? || choice == '')
+    raise "Missing choice for environment variable #{key} (#{value})" if fail_on_blank && (choice.nil? || choice == '')
     choice
   end
 

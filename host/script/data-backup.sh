@@ -2,7 +2,7 @@
 set -e
 
 /opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
-docker run --rm \
+/usr/bin/docker run --rm \
   --volumes-from ${DOCKER_CONTAINER_PARASITE_DATA} \
   -v $(pwd):/backup \
   ${DOCKER_IMAGE_SHELL} \

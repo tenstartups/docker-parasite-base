@@ -4,7 +4,7 @@
 # http://github.com/tenstartups/parasite-docker
 #
 
-FROM tenstartups/alpine-ruby:latest
+FROM tenstartups/alpine:latest
 
 MAINTAINER Marc Lennox <marc.lennox@gmail.com>
 
@@ -14,8 +14,13 @@ ENV \
   HOME=/home/parasite \
   RUBYLIB=/home/parasite/lib
 
+# Install base packages.
+RUN \
+  apk --update add ruby ruby-json && \
+  rm -rf /var/cache/apk/*
+
 # Install gems.
-RUN gem install httparty
+RUN gem install httparty --no-document
 
 # Set the working directory.
 WORKDIR "/home/parasite"

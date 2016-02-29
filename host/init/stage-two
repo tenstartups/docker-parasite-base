@@ -22,19 +22,26 @@ echo "Finished pre-pulling all required docker images"
 # Notify that we started
 /opt/bin/send-notification warn "Starting \`docker-parasite\` initialization"
 
-# (Re-)create the parasite configuration volume container
+# Delete the existing parasite configiguration container unless explicitly prevented
+if [ "${KEEP_EXISTING_PARASITE_CONFIG}" != "true" ]; then
+  /opt/bin/docker-check-remove ${DOCKER_CONTAINER_PARASITE_CONFIG}
+fi
+
+# Create the parasite configuration volume container if not alreay created
 if ! [ -z "${DOCKER_IMAGE_PARASITE_CONFIG}" ] && ! [ -z "${DOCKER_CONTAINER_PARASITE_CONFIG}" ]; then
   /opt/bin/docker-check-pull ${DOCKER_IMAGE_PARASITE_CONFIG}
-  /opt/bin/docker-check-remove ${DOCKER_CONTAINER_PARASITE_CONFIG}
-  /usr/bin/docker run \
-    --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
-    --label ${DOCKER_CONTAINER_PARASITE_CONFIG/-/_} \
-    --volume <%= getenv!(:config_directory) %> \
-    --env-file=/parasite-config.env \
-    --hostname ${DOCKER_HOSTNAME} \
-    --name ${DOCKER_CONTAINER_PARASITE_CONFIG} \
-    ${DOCKER_IMAGE_PARASITE_CONFIG} \
-    container
+  if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_CONFIG})" ] && \
+     [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_CONFIG/-/_})" ]; then
+    /usr/bin/docker run \
+      --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
+      --label ${DOCKER_CONTAINER_PARASITE_CONFIG/-/_} \
+      --volume <%= getenv!(:config_directory) %> \
+      --env-file=/parasite-config.env \
+      --hostname ${DOCKER_HOSTNAME} \
+      --name ${DOCKER_CONTAINER_PARASITE_CONFIG} \
+      ${DOCKER_IMAGE_PARASITE_CONFIG} \
+      container
+  fi
 fi
 
 # Create the parasite data volume container if not already created

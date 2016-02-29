@@ -2,6 +2,5 @@
 Description=Docker container and image cleanup timer
 
 [Timer]
-EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 OnBootSec=15min
 OnCalendar=daily

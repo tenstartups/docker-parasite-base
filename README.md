@@ -1,5 +1,4 @@
-Docker parasite application and server configuration base image
-==
+# Docker Parasite Base Docker Image
 
 This project is a very opinionated set of procedures and scripts for running applications on servers using Docker, with the fundamental aim of meeting the requirements of a twelve-factor application (http://12factor.net) and being able to bootstrap a server from scratch using a single Docker image that deploys files and runs additional services to run the application (kind of like a parasite).
 

@@ -16,7 +16,7 @@ class ParasiteConfig
     @bindings = ParasiteBinding.new
 
     # Process the yml configuration through erb
-    template = open(config_file, 'r') { |f| f.read }
+    template = File.read(config_file)
     yaml = ERB.new(template).result(@bindings.instance_eval { binding })
     @config = YAML.load(yaml) || {}
 
@@ -39,10 +39,10 @@ class ParasiteConfig
   end
 
   def deploy_host_files
-    return unless (host_files = @config['host_files']) && host_files.length > 0
+    return unless (host_files = @config['host_files']) && !host_files.empty?
     host_files.each do |file|
       # Check for required arguments
-      unless file['path'] && file['path'].length > 0
+      unless file['path'] && !file['path'].empty?
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
@@ -50,7 +50,7 @@ class ParasiteConfig
         STDERR.puts "File path '#{file['path']}' already exists."
         exit 1
       end
-      unless file['source'] && file['source'].length > 0
+      unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
@@ -64,10 +64,10 @@ class ParasiteConfig
   end
 
   def deploy_container_files
-    return unless (container_files = @config['container_files']) && container_files.length > 0
+    return unless (container_files = @config['container_files']) && !container_files.empty?
     container_files.each do |file|
       # Check for required arguments
-      unless file['path'] && file['path'].length > 0
+      unless file['path'] && !file['path'].empty?
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
@@ -75,7 +75,7 @@ class ParasiteConfig
         STDERR.puts "File path '#{file['path']}' already exists."
         exit 1
       end
-      unless file['source'] && file['source'].length > 0
+      unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
@@ -89,10 +89,10 @@ class ParasiteConfig
   end
 
   def deploy_systemd_units
-    return unless (systemd_units = @config['systemd_units']) && systemd_units.length > 0
+    return unless (systemd_units = @config['systemd_units']) && !systemd_units.empty?
     systemd_units.each do |unit|
       # Check for required arguments
-      unless unit['name'] && unit['name'].length > 0
+      unless unit['name'] && !unit['name'].empty?
         STDERR.puts 'Mandatory systemd unit name not specified.'
         exit 1
       end
@@ -101,14 +101,13 @@ class ParasiteConfig
         STDERR.puts "Systemd unit '#{unit['name']}' already exists."
         exit 1
       end
-      if unit['source'] && unit['source'].length > 0
-        unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
-        unless File.exist?(unit['source'])
-          STDERR.puts "Systemd unit source '#{unit['source']}' not found."
-          exit 1
-        end
-        deploy_file(unit['source'], unit['path'], '0644')
+      next unless unit['source'] && !unit['source'].empty?
+      unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
+      unless File.exist?(unit['source'])
+        STDERR.puts "Systemd unit source '#{unit['source']}' not found."
+        exit 1
       end
+      deploy_file(unit['source'], unit['path'], '0644')
     end
 
     # Create the service start file
@@ -147,7 +146,7 @@ class ParasiteConfig
 
     # Build the systemd, docker and profile environment files
     %w( systemd.env docker.env profile.sh ).each do |env_type|
-      File.open(File.join(File.join(ENV['CONFIG_DIRECTORY'], 'env'), "#{env_type}"), 'w') do |env_file|
+      File.open(File.join(File.join(ENV['CONFIG_DIRECTORY'], 'env'), env_type), 'w') do |env_file|
         environment = network_env.clone
         Dir["#{File.join(ENV['CONFIG_DIRECTORY'], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
@@ -173,7 +172,7 @@ class ParasiteConfig
           EOT
         end
         environment.keys.sort.each do |env_name|
-          if env_type == 'profile.sh' then
+          if env_type == 'profile.sh'
             env_file.puts("export #{env_name}=#{Shellwords.escape(environment[env_name])}")
           else
             env_file.puts("#{env_name}=#{environment[env_name]}")
@@ -193,7 +192,7 @@ class ParasiteConfig
 
   def deploy_file(source, target, permissions)
     puts "'#{source}' -> '#{target}'"
-    template = open(source, 'r') { |f| f.read }
+    template = File.read(source)
     content = ERB.new(template).result(@bindings.instance_eval { binding })
     content.gsub!(/^(.*)(___ERB_REMOVE_LINE___)(.*)$\n/, '')
     FileUtils.mkdir_p(File.dirname(target))
