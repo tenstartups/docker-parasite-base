@@ -14,6 +14,35 @@ if [ "${ABORT_PARASITE_INIT_STAGE_TWO}" = "true" ]; then
   exit 1
 fi
 
+# Create the default bridge network and extract the bridge network address
+DOCKER_VERSION=$(docker version --format '{{.Server.Version}}')
+if [[ ${DOCKER_VERSION} =~ ^1\s*\.[0-9]\.[0-9]+\s*$ ]]; then
+  DOCKER_BRIDGE_NETWORK_NAME=bridge
+  DOCKER_BRIDGE_NETWORK_ADDRESS=$(ip addr show docker0 | grep "inet " | sed -Ee 's/^\s*inet\s+([.0-9]+)\/[0-9]+\s+.+$/\1/')
+else
+  DOCKER_BRIDGE_NETWORK_NAME=parasite
+  /usr/bin/docker network rm ${DOCKER_BRIDGE_NETWORK_NAME} || true
+  /usr/bin/docker network create --driver=bridge ${DOCKER_BRIDGE_NETWORK_NAME}
+  DOCKER_BRIDGE_NETWORK_ADDRESS=$(docker network inspect --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}" ${DOCKER_BRIDGE_NETWORK_NAME} | sed -Ee 's/()(\/[0-9]+)/\1/')
+fi
+cat << EOF >> "<%= getenv!(:config_directory) %>/env/systemd.env"
+#
+# Additional docker network configuration variables
+DOCKER_VERSION=${DOCKER_VERSION}
+DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
+DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
+EOF
+cat << EOF >> "<%= getenv!(:config_directory) %>/env/profile.sh"
+#
+# Additional docker network configuration variables
+export DOCKER_VERSION=${DOCKER_VERSION}
+export DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
+export DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
+EOF
+export DOCKER_VERSION=${DOCKER_VERSION}
+export DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
+export DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
+
 # Pre-pull all docker images at the start to ensure a smoother initialization
 echo "Pre-pulling all required docker images"
 systemctl start docker-check-image-update.service
@@ -37,6 +66,7 @@ if ! [ -z "${DOCKER_IMAGE_PARASITE_CONFIG}" ] && ! [ -z "${DOCKER_CONTAINER_PARA
       --label ${DOCKER_CONTAINER_PARASITE_CONFIG/-/_} \
       --volume <%= getenv!(:config_directory) %> \
       --env-file=/parasite-config.env \
+      --net ${DOCKER_BRIDGE_NETWORK_NAME} \
       --hostname ${DOCKER_HOSTNAME} \
       --name ${DOCKER_CONTAINER_PARASITE_CONFIG} \
       ${DOCKER_IMAGE_PARASITE_CONFIG} \

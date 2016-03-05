@@ -2,5 +2,5 @@
 Description=Docker check image update timer
 
 [Timer]
-OnBootSec=15min
+OnBootSec=5min
 OnUnitInactiveSec=2min

@@ -18,6 +18,7 @@ if [ -z "${FILE_ATTACHMENT}" ]; then
     --env-file="<%= getenv!(:config_directory) %>/env/docker.env" \
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
+    --net ${DOCKER_BRIDGE_NETWORK_NAME} \
     --hostname=notifier.${DOCKER_HOSTNAME_FULL} \
     ${DOCKER_IMAGE_NOTIFIER} \
     "$@"
@@ -28,6 +29,7 @@ else
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
     -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \
+    --net ${DOCKER_BRIDGE_NETWORK_NAME} \
     --hostname=notifier.${DOCKER_HOSTNAME_FULL} \
     ${DOCKER_IMAGE_NOTIFIER} \
     "$@"
