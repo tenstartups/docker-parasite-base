@@ -3,6 +3,7 @@
 require 'parasite_config'
 
 # Set default environment
+ENV['CONFIG_ENVIRONMENT_FILE'] = '/parasite-config.env' if ENV['CONFIG_ENVIRONMENT_FILE'].nil? || ENV['CONFIG_ENVIRONMENT_FILE'] == ''
 ENV['CONFIG_DIRECTORY'] = '/parasite-config' if ENV['CONFIG_DIRECTORY'].nil? || ENV['CONFIG_DIRECTORY'] == ''
 ENV['DATA_DIRECTORY'] = '/parasite-data' if ENV['DATA_DIRECTORY'].nil? || ENV['DATA_DIRECTORY'] == ''
 ENV['PARASITE_OS'] = ENV['PARASITE_OS'].downcase

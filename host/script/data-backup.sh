@@ -3,8 +3,8 @@ set -e
 
 /opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
-  --volumes-from ${DOCKER_CONTAINER_PARASITE_DATA} \
-  -v $(pwd):/backup \
-  --net ${DOCKER_BRIDGE_NETWORK_NAME} \
+  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
+  -v /tmp:/tmp \
   ${DOCKER_IMAGE_SHELL} \
-  bash -c 'cd <%= getenv!(:data_directory) %> && tar cvzf /backup/parasite-data.tar.gz .'
+  bash -c "rm -rf '/tmp/backup.tar.gz' && cd <%= getenv!(:data_directory) %> && tar cvzf '/tmp/backup.tar.gz' ."
+mv "/tmp/backup.tar.gz" "${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}"

@@ -61,7 +61,7 @@ RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
 EnvironmentFile=/parasite-config.env
-EnvironmentFile=-/parasite-config-ext.env
+EnvironmentFile=-/parasite-config.env.local
 ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
 ExecStartPre=/usr/bin/docker run --rm \
   -v /var/run/${CONFIG_DIRECTORY}:${CONFIG_DIRECTORY} \

@@ -19,8 +19,8 @@ if ! [ "$(whoami)" = "root" ]; then
 fi
 
 # Make sure the parasite environment file is in place
-if ! [ -f "/parasite-config.env" ]; then
-  echo >&2 "Missing parasite initialization environment file /parasite-config.env!"
+if ! [ -f "<%= getenv!(:config_environment_file) %>" ]; then
+  echo >&2 "Missing parasite initialization environment file <%= getenv!(:config_environment_file) %>!"
   exit 1
 fi
 

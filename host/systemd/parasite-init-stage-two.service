@@ -10,7 +10,7 @@ Restart=on-failure
 RestartSec=10s
 TimeoutStartSec=300
 TimeoutStopSec=30
-EnvironmentFile=/parasite-config.env
-EnvironmentFile=-/parasite-config-ext.env
+EnvironmentFile=<%= getenv!(:config_environment_file) %>
+EnvironmentFile=-<%= getenv!(:config_environment_file) %>.local
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 ExecStart=<%= getenv!(:config_directory) %>/init/stage-two

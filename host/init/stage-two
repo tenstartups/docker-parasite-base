@@ -51,51 +51,23 @@ echo "Finished pre-pulling all required docker images"
 # Notify that we started
 /opt/bin/send-notification warn "Starting \`docker-parasite\` initialization"
 
-# Delete the existing parasite configiguration container unless explicitly prevented
-if [ "${KEEP_EXISTING_PARASITE_CONFIG}" != "true" ]; then
-  /opt/bin/docker-check-remove ${DOCKER_CONTAINER_PARASITE_CONFIG}
-fi
+# Delete the existing parasite configuration unless explicitly prevented
+[ "${KEEP_EXISTING_PARASITE_CONFIG}" == "true" ] || \
+  /usr/bin/docker run --rm \
+    -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
+    ${DOCKER_IMAGE_SHELL} \
+    sh -c "cd <%= getenv!(:config_directory) %> && rm -rf *"
 
-# Create the parasite configuration volume container if not alreay created
-if ! [ -z "${DOCKER_IMAGE_PARASITE_CONFIG}" ] && ! [ -z "${DOCKER_CONTAINER_PARASITE_CONFIG}" ]; then
-  /opt/bin/docker-check-pull ${DOCKER_IMAGE_PARASITE_CONFIG}
-  if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_CONFIG})" ] && \
-     [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_CONFIG/-/_})" ]; then
-    /usr/bin/docker run \
-      --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
-      --label ${DOCKER_CONTAINER_PARASITE_CONFIG/-/_} \
-      --volume <%= getenv!(:config_directory) %> \
-      --env-file=/parasite-config.env \
-      --net ${DOCKER_BRIDGE_NETWORK_NAME} \
-      --hostname ${DOCKER_HOSTNAME} \
-      --name ${DOCKER_CONTAINER_PARASITE_CONFIG} \
-      ${DOCKER_IMAGE_PARASITE_CONFIG} \
-      container
-  fi
-fi
+# Create the parasite configuration volume if not alreay created
+[ "${KEEP_EXISTING_PARASITE_CONFIG}" == "true" ] || \
+  /usr/bin/docker run --rm \
+    -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
+    --env-file=<%= getenv!(:config_environment_file) %> \
+    ${DOCKER_IMAGE_PARASITE_CONFIG} \
+    container
 
-# Create the parasite data volume container if not already created
-if ! [ -z "${DOCKER_IMAGE_PARASITE_DATA}" ] && ! [ -z "${DOCKER_CONTAINER_PARASITE_DATA}" ]; then
-  /opt/bin/docker-check-pull ${DOCKER_IMAGE_PARASITE_DATA}
-  if [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA})" ] && \
-     [ -z "$(docker ps --no-trunc -a -q -f label=${DOCKER_CONTAINER_PARASITE_DATA/-/_})" ]; then
-    /usr/bin/docker create \
-      --label ${DOCKER_VOLUME_CONTAINER_LABEL} \
-      --label ${DOCKER_CONTAINER_PARASITE_DATA/-/_} \
-      --volume <%= getenv!(:data_directory) %> \
-      --name ${DOCKER_CONTAINER_PARASITE_DATA} \
-      ${DOCKER_IMAGE_PARASITE_DATA}
-    # Load data from a backup tar file if present
-    if [ -f "/parasite-data.tar.gz" ]; then
-      /opt/bin/docker-check-pull ${DOCKER_IMAGE_SHELL}
-      docker run --rm \
-        --volumes-from ${DOCKER_CONTAINER_PARASITE_DATA} \
-        -v /parasite-data.tar.gz:/parasite-data.tar.gz \
-        ${DOCKER_IMAGE_SHELL} \
-        sh -c 'cd <%= getenv!(:data_directory) %> && tar xvzf /parasite-data.tar.gz'
-    fi
-  fi
-fi
+# Load data from a backup tar file if present
+/opt/bin/data-restore || true
 
 # Start base systemd services and wait
 systemctl start install-tools.service &

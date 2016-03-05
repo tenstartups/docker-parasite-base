@@ -21,46 +21,42 @@ fi
 # ex. "tenstartups/coreos-parasite-init:latest"
 IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
 image_tag=${image_tag:-latest}
-image_id=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} 2>/dev/null || true)
+image_sha=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} | sed -E "s/^\s*(sha256:)?([a-fA-F0-9]+)\s*$/\2/" 2>/dev/null || true)
 
 # Update the docker image name to include tag if it didn't have it
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
 
 # Generate an id file for downstream actions to trigger off of when changed
-image_id_file="<%= getenv!(:config_directory) %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
-if ! [ -z "${image_id}" ] && ! [ -f "${image_id_file}" ]; then
+image_sha_file="<%= getenv!(:config_directory) %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
+if ! [ -z "${image_sha}" ] && ! [ -f "${image_sha_file}" ]; then
   old_umask=`umask` && umask 000
-  mkdir -p "$(dirname ${image_id_file})"
-  printf "${image_id}" > "${image_id_file}"
+  mkdir -p "$(dirname ${image_sha_file})"
+  printf "${image_sha}" > "${image_sha_file}"
   umask ${old_umask}
 fi
 
 # Pull the docker image from the registry
-old_umask=`umask` && umask 000 && exec 200>/tmp/.docker.lockfile && umask ${old_umask}
-if flock --exclusive --wait 300 200; then
-  docker pull "${DOCKER_IMAGE_NAME}" | {
-    while IFS= read -r line; do
-      if [[ ${line} =~ :\ .*Pulling\ fs\ layer.* ]] && [ "${notified_new_image}" != "true" ]; then
-        echo "Pulling new docker image ${DOCKER_IMAGE_NAME}"
-        /opt/bin/send-notification warn "Pulling new docker image \`${DOCKER_IMAGE_NAME}\`"
-        notified_new_image=true
-      fi
-    done
-  }
-  flock --unlock 200
-fi
+docker pull "${DOCKER_IMAGE_NAME}" | {
+  while IFS= read -r line; do
+    if [[ ${line} =~ :\ .*Pulling\ fs\ layer.* ]] && [ "${notified_new_image}" != "true" ]; then
+      echo "Pulling new docker image ${DOCKER_IMAGE_NAME}"
+      /opt/bin/send-notification warn "Pulling new docker image \`${DOCKER_IMAGE_NAME}\`"
+      notified_new_image=true
+    fi
+  done
+}
 
 # Output a message if we have a new image
-new_image_id=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} 2>/dev/null || true)
-if [ "${new_image_id}" != "${image_id}" ]; then
-  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_id:0:12})"
-  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (${new_image_id:0:12})\`"
+new_image_sha=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} | sed -E "s/^\s*(sha256:)?([a-fA-F0-9]+)\s*$/\2/" 2>/dev/null || true)
+if [ "${new_image_sha}" != "${image_sha}" ]; then
+  echo "Finished pulling new docker image ${DOCKER_IMAGE_NAME} (${new_image_sha})"
+  /opt/bin/send-notification success "Finished pulling new docker image \`${DOCKER_IMAGE_NAME} (sha256:${new_image_sha:0:12})\`"
 fi
 
 # Update the id file if we have a new image
-if ! [ -f "${image_id_file}" ] || [ "${new_image_id}" != "`cat ${image_id_file}`" ]; then
+if ! [ -f "${image_sha_file}" ] || [ "${new_image_sha}" != "`cat ${image_sha_file}`" ]; then
   old_umask=`umask` && umask 000
-  mkdir -p "$(dirname ${image_id_file})"
-  printf "${new_image_id}" > "${image_id_file}"
+  mkdir -p "$(dirname ${image_sha_file})"
+  printf "${new_image_sha}" > "${image_sha_file}"
   umask ${old_umask}
 fi

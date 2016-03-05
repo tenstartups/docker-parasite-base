@@ -17,8 +17,8 @@ ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
-  --volumes-from ${DOCKER_CONTAINER_PARASITE_CONFIG} \
-  --volumes-from ${DOCKER_CONTAINER_PARASITE_DATA} \
+  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
+  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   --env-file=<%= getenv!(:config_directory) %>/env/etcd.env \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \

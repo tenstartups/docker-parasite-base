@@ -46,10 +46,10 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      if File.exist?(file['path'])
-        STDERR.puts "File path '#{file['path']}' already exists."
-        exit 1
-      end
+      # if File.exist?(file['path'])
+      #   STDERR.puts "File path '#{file['path']}' already exists."
+      #   exit 1
+      # end
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -71,10 +71,10 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      if File.exist?(file['path'])
-        STDERR.puts "File path '#{file['path']}' already exists."
-        exit 1
-      end
+      # if File.exist?(file['path'])
+      #   STDERR.puts "File path '#{file['path']}' already exists."
+      #   exit 1
+      # end
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -97,10 +97,10 @@ class ParasiteConfig
         exit 1
       end
       unit['path'] = File.join(ENV['CONFIG_DIRECTORY'], 'systemd', unit['name'])
-      if File.exist?(unit['path'])
-        STDERR.puts "Systemd unit '#{unit['name']}' already exists."
-        exit 1
-      end
+      # if File.exist?(unit['path'])
+      #   STDERR.puts "Systemd unit '#{unit['name']}' already exists."
+      #   exit 1
+      # end
       next unless unit['source'] && !unit['source'].empty?
       unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
