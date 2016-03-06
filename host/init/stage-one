@@ -44,10 +44,15 @@ find "<%= getenv!(:config_directory) %>/systemd" -type f \( -name "*.path" -or -
 done
 
 # Create symlinks for all scipts to the /opt/bin directory without the .sh extension
-# for convenience
 mkdir -p "/opt/bin"
 find "<%= getenv!(:config_directory) %>/script" -type f -iname "*.sh" | while read f; do
   ln -fsv "$f" "/opt/bin/`basename ${f%.sh}`"
+done
+
+# Create symlinks for logrotate configurations
+rm -f /etc/logrotate.d/*.conf
+find "<%= getenv!(:config_directory) %>/logrotate.d" -type f \( -name "*.conf" \) | while read f; do
+  ln -fsv "$f" "/etc/logrotate.d/`basename $f`"
 done
 
 # Create a symlink for the environment profile

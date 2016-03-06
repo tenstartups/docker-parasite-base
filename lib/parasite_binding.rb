@@ -15,6 +15,12 @@ class ParasiteBinding
     getenv(key, true)
   end
 
+  %w( coreos hypriotos ).each do |os_key|
+    define_method :"#{os_key}?" do
+      getenv!(:parasite_os) == os_key
+    end
+  end
+
   def choose(key, choices = {}, fail_on_blank = false)
     value = getenv(key, fail_on_blank)
     choice = choices[value] || choices[value.to_sym]

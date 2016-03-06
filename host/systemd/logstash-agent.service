@@ -1,6 +1,5 @@
 [Unit]
-Description=etcd shared configuration service docker
-Conflicts=etcd.service etcd2.service
+Description=Logstash logging service
 
 [Service]
 User=root
@@ -11,20 +10,20 @@ TimeoutStopSec=30
 EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
-ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
+ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_LOGSTASH_AGENT}
 ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
-ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/etcd
+ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/logstash
 ExecStart=/usr/bin/docker run \
-  -p 2379:2379 \
-  -p 2380:2380 \
   -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
   -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
-  -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
-  --env-file=${ETCD_ENV_FILE} \
+  -v /var/log/journal-collector:/var/log/journal-collector:ro \
+  -e HOME=<%= getenv!(:data_directory) %>/logstash \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \
+  --add-host elasticsearch:${DOCKER_BRIDGE_NETWORK_ADDRESS} \
   --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
-  ${DOCKER_IMAGE_ETCD}
+  --entrypoint sh \
+  ${DOCKER_IMAGE_LOGSTASH_AGENT} \
+  -c "rm -rf /var/lib/logstash && logstash -f ${LOGSTASH_CONFIG_FILE}"
 ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
-ExecStartPost=/opt/bin/etcd-wait-ready
 ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}

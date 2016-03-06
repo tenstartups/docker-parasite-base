@@ -43,9 +43,17 @@ export DOCKER_VERSION=${DOCKER_VERSION}
 export DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
 export DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
 
+# Attempts to start a systemd unit if it exists
+start_unit() {
+  systemd_unit=$1
+  # Return silently if the unit doesn't exist
+  systemctl status ${systemd_unit} | grep "Loaded: not-found" 2>&1 >/dev/null && return
+  systemctl start ${systemd_unit}
+}
+
 # Pre-pull all docker images at the start to ensure a smoother initialization
 echo "Pre-pulling all required docker images"
-systemctl start docker-check-image-update.service
+start_unit docker-check-image-update.service
 echo "Finished pre-pulling all required docker images"
 
 # Notify that we started
@@ -70,23 +78,17 @@ echo "Finished pre-pulling all required docker images"
 /opt/bin/data-restore || true
 
 # Start base systemd services and wait
-systemctl start install-tools.service &
-<% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
-if ! [ -z "${SWAP_FILE}" ] && ! [ -z "${SWAP_SIZE_MB}" ]; then
-  systemctl start swapfile.service &
-fi
-if ! [ -z "${NEWRELIC_LICENSE_KEY}" ]; then
-  systemctl start newrelic-agent.service &
-fi
-if [ -f "<%= getenv!(:config_directory) %>/env/etcd.env" ]; then
-  systemctl start etcdd.service &
-fi
-<% end %>___ERB_REMOVE_LINE___
+start_unit install-tools.service &
+[ -z "${ETCD_ENV_FILE}" ] || start_unit etcdd.service &
+[ -z "${JOURNAL_COLLECTOR_FORMAT}" ] || start_unit journal-collector.service &
+[ -z "${LOGSTASH_CONFIG_FILE}" ] || start_unit logstash-agent.service &
+[ -z "${NEWRELIC_LICENSE_KEY}" ] || start_unit newrelic-agent.service &
+[ -z "${SWAP_FILE}" ] || [ -z "${SWAP_SIZE_MB}" ] || start_unit swapfile.service &
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order
 find "<%= getenv!(:config_directory) %>/init.d" -type f | sort | uniq | while read file; do
-  <% if getenv!(:parasite_os) == 'coreos' %>___ERB_REMOVE_LINE___
+  <% if coreos? %>___ERB_REMOVE_LINE___
   if [[ "$file" == *.yml ]]; then
     echo "Executing parasite initialization cloud-config $file..."
     coreos-cloudinit --from-file="$file"
@@ -101,7 +103,7 @@ done
 # Start services listed in the systemd start file
 if [ -f "<%= getenv!(:config_directory) %>/systemd/start" ]; then
   cat "<%= getenv!(:config_directory) %>/systemd/start" | sort | while read unit; do
-    systemctl start $unit &
+    start_unit ${unit} &
   done
   wait
 fi

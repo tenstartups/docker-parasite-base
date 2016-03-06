@@ -15,6 +15,13 @@ host_files:
     source: <%= relative_path %>
 <% end %>
 
+  # Logrotate configuration files
+<% source_files(:host, 'logrotate.d/*.conf') do |relative_path| %>
+  - path: <%= getenv!(:config_directory) %>/<%= relative_path %>
+    permissions: '0644'
+    source: <%= relative_path %>
+<% end %>
+
   # Initialization scripts
 <% source_files(:host, 'init/*') do |relative_path| %>
   - path: <%= getenv!(:config_directory) %>/<%= relative_path %>
@@ -28,7 +35,7 @@ host_files:
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
-<% if getenv!(:parasite_os) == 'coreos' %>
+<% if coreos? %>
 <% source_files(:host, 'init.d/*.yml') do |relative_path| %>
   - path: <%= getenv!(:config_directory) %>/<%= relative_path %>
     permissions: '0644'
@@ -62,25 +69,35 @@ host_files:
 
 systemd_units:
 
-  - name: parasite-init-stage-two.service
-    source: systemd/parasite-init-stage-two.service
-  - name: install-tools.service
-    source: systemd/install-tools.service
-<% if getenv!(:parasite_os) == 'coreos' %>
-  - name: swapfile.service
-    source: systemd/swapfile.service
-  - name: newrelic-agent.service
-    source: systemd/newrelic-agent.service
-  - name: etcdd.service
-    source: systemd/etcdd.service
-<% end %>
+  - name: docker-check-image-update.service
+    source: systemd/docker-check-image-update.service
   - name: docker-check-image-update.timer
     start: true
     source: systemd/docker-check-image-update.timer
-  - name: docker-check-image-update.service
-    source: systemd/docker-check-image-update.service
+  - name: docker-cleanup.service
+    source: systemd/docker-cleanup.service
   - name: docker-cleanup.timer
     start: true
     source: systemd/docker-cleanup.timer
-  - name: docker-cleanup.service
-    source: systemd/docker-cleanup.service
+<% if coreos? %>
+  - name: etcdd.service
+    source: systemd/etcdd.service
+<% end %>
+  - name: install-tools.service
+    source: systemd/install-tools.service
+  - name: journal-collector.service
+    source: systemd/journal-collector.service
+<% if coreos? %>
+  - name: logstash-agent.service
+    source: systemd/logstash-agent.service
+<% end %>
+<% if coreos? %>
+  - name: newrelic-agent.service
+    source: systemd/newrelic-agent.service
+<% end %>
+  - name: parasite-init-stage-two.service
+    source: systemd/parasite-init-stage-two.service
+<% if coreos? %>
+  - name: swapfile.service
+    source: systemd/swapfile.service
+<% end %>

@@ -1,0 +1,17 @@
+[Unit]
+Description=Systemd journal collector service
+
+[Service]
+User=root
+RemainAfterExit=true
+Restart=on-failure
+RestartSec=10s
+TimeoutStartSec=300
+TimeoutStopSec=30
+EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
+Environment=SERVICE_NAME=%n
+Environment=JOURNAL_COLLECTOR_FILE=/var/log/journal-collector/journal.json
+ExecStartPre=-/opt/bin/send-notification warn "Starting `${SERVICE_NAME}` service"
+ExecStartPre=/usr/bin/mkdir -p /var/log/journal-collector
+ExecStart=/usr/bin/sh -c 'journalctl -f -o json | tee -a ${JOURNAL_COLLECTOR_FILE} 2>&1 >/dev/null'
+ExecStartPost=-/opt/bin/send-notification success "Started `${SERVICE_NAME}` service"
