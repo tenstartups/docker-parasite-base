@@ -20,5 +20,5 @@ fi
   -v ${DOCKER_VOLUME_PARASITE_DATA}:"<%= getenv!(:data_directory) %>" \
   -v /tmp:/tmp \
   ${DOCKER_IMAGE_SHELL} \
-  sh -c "cd '<%= getenv!(:data_directory) %>' && tar xvzf '/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}' && mv '/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}' '/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}.restored'"
+  sh -c "cd '<%= getenv!(:data_directory) %>' && tar xvzf '/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}'"
 /opt/bin/send-notification success "Finished restoring \`parasite\` data from backup archive"

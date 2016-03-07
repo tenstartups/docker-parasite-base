@@ -75,7 +75,11 @@ echo "Finished pre-pulling all required docker images"
     container
 
 # Load data from a backup tar file if present
+[ -f "/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" ] && \
+  mv "/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" /tmp/
 /opt/bin/data-restore || true
+[ -f "/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" ] && \
+  mv "/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" "/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}.restored"
 
 # Start base systemd services and wait
 start_unit install-tools.service &
