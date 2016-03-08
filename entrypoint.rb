@@ -19,6 +19,12 @@ case ARGV[0]
 when /host|container/
   ENV['MODE'] = ARGV.shift
   puts "Deploying parasite files in #{ENV['MODE']} mode..."
+  # Backup existing files
+  backup_dir = "#{ENV['CONFIG_DIRECTORY']}/.backup_#{Time.now.strftime('%Y%m%d%H%M%S')}"
+  Dir["#{ENV['CONFIG_DIRECTORY']}/*"].each do |dir|
+    FileUtils.mkdir_p(backup_dir)
+    FileUtils.mv(dir, backup_dir)
+  end
   # Execute each deploy script in order
   Dir['./conf.d/*.yml'].sort.each do |config|
     ENV['SOURCE_DIRECTORY'] = File.join(

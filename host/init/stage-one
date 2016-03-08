@@ -6,6 +6,14 @@ set -e
 # second stage initialization.  This stage should NOT perform anything complicated
 # such as docker operations.
 
+# LEGACY HANDLING to move config files from /var/run
+[ -d "/var/run<%= getenv!(:config_directory) %>" ] && \
+  rm -rf "<%= getenv!(:config_directory) %>" && \
+  mv "/var/run<%= getenv!(:config_directory) %>" "<%= getenv!(:config_directory) %>"
+
+# Create a host data directory
+mkdir -p "<%= getenv!(:data_directory) %>"
+
 # Abort stage one if environment is set
 if [ "${ABORT_PARASITE_INIT_STAGE_ONE}" = "true" ]; then
   echo >&2 "Aborting parasite stage one initialization per ABORT_PARASITE_INIT_STAGE_ONE environment variable"
@@ -30,13 +38,9 @@ mkdir -p "/home/<%= getenv!(:parasite_user) %>/.docker"
 cp -fv "/root/.docker/config.json" "/home/<%= getenv!(:parasite_user) %>/.docker/config.json"
 chown -R <%= getenv!(:parasite_user) %>:<%= getenv!(:parasite_user) %> "/home/<%= getenv!(:parasite_user) %>/.docker"
 
-# Symlink the parasite directory to the root
-ln -nfs "/var/run<%= getenv!(:config_directory) %>" "<%= getenv!(:config_directory) %>"
-
-# Move the stage 2 init service directly to the systemd run directory
-if [ -f "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.service" ]; then
+# Move the stage two init service directly to the systemd run directory
+[ -f "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.service" ] && \
   mv -fv "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.service" "/var/run/systemd/system"
-fi
 
 # Create symlinks for all systemd units in the systemd directory
 find "<%= getenv!(:config_directory) %>/systemd" -type f \( -name "*.path" -or -name "*.service" -or -name "*.timer" \) | while read f; do

@@ -62,15 +62,16 @@ TimeoutStartSec=300
 TimeoutStopSec=30
 EnvironmentFile=/parasite-config.env
 EnvironmentFile=-/parasite-config.env.local
-ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD}"
+ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || \
+  docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD} ${DOCKER_REGISTRY_HOSTNAME}"
+ExecStartPre=/usr/bin/touch /parasite-config.env.local
 ExecStartPre=/usr/bin/docker run --rm \
-  -v /var/run/${CONFIG_DIRECTORY}:${CONFIG_DIRECTORY} \
-  --env-file=/etc/environment \
+  -v ${CONFIG_DIRECTORY}:${CONFIG_DIRECTORY} \
   --env-file=/parasite-config.env \
-  --net host \
+  --env-file=/parasite-config.env.local \
   ${DOCKER_IMAGE_PARASITE_CONFIG} \
   host
-ExecStart=/bin/sh -c "/var/run/${CONFIG_DIRECTORY}/init/stage-one"
+ExecStart=/bin/sh -c "${CONFIG_DIRECTORY}/init/stage-one"
 ```
 
 The initialization process copies files from the image to a specified target location, which can be set with the CONFIG_DIRECTORY environment variable (default is /parasite-config).

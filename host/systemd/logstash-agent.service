@@ -1,5 +1,6 @@
 [Unit]
-Description=Logstash logging service
+Description=Logstash log forwarding service
+Requires=journal-collector.service
 
 [Service]
 User=root
@@ -16,7 +17,7 @@ ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/logstash
 ExecStart=/usr/bin/docker run \
   -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
   -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
-  -v /var/log/journal-collector:/var/log/journal-collector:ro \
+  -v <%= getenv!(:data_directory) %>/log:/var/log/logstash:ro \
   -e HOME=<%= getenv!(:data_directory) %>/logstash \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \
   --add-host elasticsearch:${DOCKER_BRIDGE_NETWORK_ADDRESS} \

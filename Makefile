@@ -10,4 +10,4 @@ push: build
 	docker push ${DOCKER_IMAGE_NAME}
 
 run: build
-	docker run -it --rm --env-file=environment --net=host ${DOCKER_IMAGE_NAME} ${ARGS}
+	docker run -it --rm -v $(PWD)/parasite-config:/parasite-config ${DOCKER_IMAGE_NAME} ${ARGS}

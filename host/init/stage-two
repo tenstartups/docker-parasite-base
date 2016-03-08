@@ -25,6 +25,8 @@ else
   /usr/bin/docker network create --driver=bridge ${DOCKER_BRIDGE_NETWORK_NAME}
   DOCKER_BRIDGE_NETWORK_ADDRESS=$(docker network inspect --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}" ${DOCKER_BRIDGE_NETWORK_NAME} | sed -Ee 's/()(\/[0-9]+)/\1/')
 fi
+
+# Add docker network configuration to the parasite environment files
 cat << EOF >> "<%= getenv!(:config_directory) %>/env/systemd.env"
 #
 # Additional docker network configuration variables
@@ -34,20 +36,25 @@ DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
 EOF
 cat << EOF >> "<%= getenv!(:config_directory) %>/env/profile.sh"
 #
-# Additional docker network configuration variables
+# Additional docker and host network configuration
 export DOCKER_VERSION=${DOCKER_VERSION}
 export DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
 export DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
 EOF
-export DOCKER_VERSION=${DOCKER_VERSION}
-export DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
-export DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
+
+# Add coreos network configuration to the parasite environment files
+[ -f /etc/environment ] && \
+  cat /etc/environment >> "<%= getenv!(:config_directory) %>/env/systemd.env" && \
+  cat /etc/environment | sed -E 's/^(.+)$/export \1/' >> "<%= getenv!(:config_directory) %>/env/profile.sh"
+
+# Re-export variables for use in this script
+source "<%= getenv!(:config_directory) %>/env/profile.sh"
 
 # Attempts to start a systemd unit if it exists
 start_unit() {
   systemd_unit=$1
   # Return silently if the unit doesn't exist
-  systemctl status ${systemd_unit} | grep "Loaded: not-found" 2>&1 >/dev/null && return
+  systemctl status ${systemd_unit} | grep "Loaded: not-found" >/dev/null 2>&1 && return
   systemctl start ${systemd_unit}
 }
 
@@ -59,32 +66,29 @@ echo "Finished pre-pulling all required docker images"
 # Notify that we started
 /opt/bin/send-notification warn "Starting \`docker-parasite\` initialization"
 
-# Delete the existing parasite configuration unless explicitly prevented
-[ "${KEEP_EXISTING_PARASITE_CONFIG}" == "true" ] || \
-  /usr/bin/docker run --rm \
-    -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
-    ${DOCKER_IMAGE_SHELL} \
-    sh -c "cd <%= getenv!(:config_directory) %> && rm -rf *"
+# Create the parasite configuration volume and initialize configuration into it
+/usr/bin/docker volume create --name ${DOCKER_VOLUME_PARASITE_CONFIG}
+/usr/bin/touch "<%= getenv!(:config_environment_file) %>.local"
+/usr/bin/docker run --rm \
+  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
+  --env-file="<%= getenv!(:config_environment_file) %>" \
+  --env-file="<%= getenv!(:config_environment_file) %>.local" \
+  ${DOCKER_IMAGE_PARASITE_CONFIG} \
+  container
 
-# Create the parasite configuration volume if not alreay created
-[ "${KEEP_EXISTING_PARASITE_CONFIG}" == "true" ] || \
-  /usr/bin/docker run --rm \
-    -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
-    --env-file=<%= getenv!(:config_environment_file) %> \
-    ${DOCKER_IMAGE_PARASITE_CONFIG} \
-    container
+# Create the parasite data volume and load from backup archive if present
+/usr/bin/docker volume create --name ${DOCKER_VOLUME_PARASITE_CONFIG}
+[ -f "/${PARASITE_DATA_BACKUP_ARCHIVE}" ] && \
+  mv "/${PARASITE_DATA_BACKUP_ARCHIVE}" "/tmp/${PARASITE_DATA_BACKUP_ARCHIVE}" && \
+  /opt/bin/data-restore && \
+  mv "/tmp/${PARASITE_DATA_BACKUP_ARCHIVE}" "/${PARASITE_DATA_BACKUP_ARCHIVE}.restored"
 
-# Load data from a backup tar file if present
-[ -f "/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" ] && \
-  mv "/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" /tmp/
-/opt/bin/data-restore || true
-[ -f "/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" ] && \
-  mv "/tmp/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}" "/${DOCKER_PARASITE_DATA_BACKUP_ARCHIVE}.restored"
-
-# Start base systemd services and wait
+# Start common systemd services and wait
 start_unit install-tools.service &
+[ "${START_DOCKER_CLEANUP}" = "true" ] && start_unit docker-cleanup.timer &
+[ "${START_DOCKER_IMAGE_UPDATE}" = "true" ] && start_unit docker-check-image-update.timer &
 [ -z "${ETCD_ENV_FILE}" ] || start_unit etcdd.service &
-[ -z "${JOURNAL_COLLECTOR_FORMAT}" ] || start_unit journal-collector.service &
+[ "${START_JOURNAL_COLLECTOR}" = "true" ] && start_unit journal-collector.service &
 [ -z "${LOGSTASH_CONFIG_FILE}" ] || start_unit logstash-agent.service &
 [ -z "${NEWRELIC_LICENSE_KEY}" ] || start_unit newrelic-agent.service &
 [ -z "${SWAP_FILE}" ] || [ -z "${SWAP_SIZE_MB}" ] || start_unit swapfile.service &

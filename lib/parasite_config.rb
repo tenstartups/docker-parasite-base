@@ -23,7 +23,6 @@ class ParasiteConfig
     # Call individual config methods
     case ENV['MODE']
     when 'host'
-      create_host_directories
       deploy_host_files
       deploy_systemd_units
       build_environment_files
@@ -32,11 +31,7 @@ class ParasiteConfig
     end
   end
 
-  def create_host_directories
-    %w( env env.d init init.d script tools.d systemd ).each do |config_dir|
-      FileUtils.mkdir_p(File.join(ENV['CONFIG_DIRECTORY'], config_dir))
-    end
-  end
+  private
 
   def deploy_host_files
     return unless (host_files = @config['host_files']) && !host_files.empty?
@@ -46,10 +41,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      # if File.exist?(file['path'])
-      #   STDERR.puts "File path '#{file['path']}' already exists."
-      #   exit 1
-      # end
+      file['path'] = File.join(ENV['CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -71,10 +63,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      # if File.exist?(file['path'])
-      #   STDERR.puts "File path '#{file['path']}' already exists."
-      #   exit 1
-      # end
+      file['path'] = File.join(ENV['CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -97,10 +86,6 @@ class ParasiteConfig
         exit 1
       end
       unit['path'] = File.join(ENV['CONFIG_DIRECTORY'], 'systemd', unit['name'])
-      # if File.exist?(unit['path'])
-      #   STDERR.puts "Systemd unit '#{unit['name']}' already exists."
-      #   exit 1
-      # end
       next unless unit['source'] && !unit['source'].empty?
       unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
@@ -123,27 +108,15 @@ class ParasiteConfig
   end
 
   def build_environment_files
-    # Extract the network environment variables
-    # This relies on the parasite stage one init being run with docker
-    # '--net host' parameter
-    # It also assumes that the /etc/hostname file on the host has the host's FQDN
-    network_env = {
-      'DOCKER_HOSTNAME' => ENV['HOSTNAME'].split('.').first,
-      'DOCKER_HOSTNAME_FULL' => ENV['HOSTNAME']
-    }
-    if ENV['PARASITE_OS'] == 'coreos'
-      network_env['HOST_PUBLIC_IP_ADDRESS'] = ENV['COREOS_PUBLIC_IPV4']
-      network_env['HOST_PRIVATE_IP_ADDRESS'] = ENV['COREOS_PRIVATE_IPV4']
-      if network_env['HOST_PUBLIC_IP_ADDRESS'].nil? || network_env['HOST_PRIVATE_IP_ADDRESS'].nil?
-        STDERR.puts 'CoreOS IPv4 address not found in environment, did you run docker with --env-file=/etc/environment?'
-      end
-    end
-
     # Build the systemd, docker and profile environment files
     %w( systemd.env docker.env profile.sh ).each do |env_type|
-      File.open(File.join(File.join(ENV['CONFIG_DIRECTORY'], 'env'), env_type), 'w') do |env_file|
-        environment = {}
-        network_env.each { |k, v| environment[k] = v }
+      env_dir = File.join(ENV['CONFIG_DIRECTORY'], 'env')
+      FileUtils.mkdir_p(env_dir)
+      File.open(File.join(env_dir, env_type), 'w') do |env_file|
+        environment = {
+          'DOCKER_HOSTNAME' => ENV['HOSTNAME'].split('.').first,
+          'DOCKER_HOSTNAME_FULL' => ENV['HOSTNAME']
+        }
         Dir["#{File.join(ENV['CONFIG_DIRECTORY'], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
           .sort.each do |env_part_file|
