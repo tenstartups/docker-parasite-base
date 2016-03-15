@@ -15,6 +15,7 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
 /opt/bin/docker-check-pull "${DOCKER_IMAGE_NOTIFIER}"
 if [ -z "${FILE_ATTACHMENT}" ]; then
   /usr/bin/docker run --rm \
+    -v /etc/ssl:/etc/ssl \
     --env-file="<%= getenv!(:config_directory) %>/env/docker.env" \
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
     -e MESSAGE="${MESSAGE}" \
@@ -23,6 +24,7 @@ if [ -z "${FILE_ATTACHMENT}" ]; then
     "$@"
 else
   /usr/bin/docker run --rm \
+    -v /etc/ssl:/etc/ssl \
     --env-file="<%= getenv!(:config_directory) %>/env/docker.env" \
     -v "${FILE_ATTACHMENT}:/tmp/$(basename ${FILE_ATTACHMENT}):ro" \
     -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
