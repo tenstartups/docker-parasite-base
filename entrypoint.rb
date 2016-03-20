@@ -25,6 +25,10 @@ when /host|container/
     FileUtils.mkdir_p(backup_dir)
     FileUtils.mv(dir, backup_dir)
   end
+  # Delete old backups
+  Dir.glob("#{ENV['CONFIG_DIRECTORY']}/.backup_*").each do |dir|
+    FileUtils.rm_rf(dir) if ((Time.now - File.ctime(dir)) / (24 * 3600)) > 7
+  end
   # Execute each deploy script in order
   Dir['./conf.d/*.yml'].sort.each do |config|
     ENV['SOURCE_DIRECTORY'] = File.join(
