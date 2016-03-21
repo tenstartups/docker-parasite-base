@@ -69,12 +69,7 @@ echo "Finished pre-pulling all required docker images"
 # Create the parasite configuration volume and initialize configuration into it
 /usr/bin/docker volume create --name ${DOCKER_VOLUME_PARASITE_CONFIG}
 /usr/bin/touch "<%= getenv!(:config_environment_file) %>.local"
-/usr/bin/docker run --rm \
-  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
-  --env-file="<%= getenv!(:config_environment_file) %>" \
-  --env-file="<%= getenv!(:config_environment_file) %>.local" \
-  ${DOCKER_IMAGE_PARASITE_CONFIG} \
-  container
+/opt/bin/config-initialize
 
 # Create the parasite data volume and load from backup archive if present
 /usr/bin/docker volume create --name ${DOCKER_VOLUME_PARASITE_CONFIG}
