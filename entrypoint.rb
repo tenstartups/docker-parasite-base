@@ -7,12 +7,17 @@ ENV['CONFIG_ENVIRONMENT_FILE'] = '/parasite-config.env' if ENV['CONFIG_ENVIRONME
 ENV['CONFIG_DIRECTORY'] = '/parasite-config' if ENV['CONFIG_DIRECTORY'].nil? || ENV['CONFIG_DIRECTORY'] == ''
 ENV['DATA_DIRECTORY'] = '/parasite-data' if ENV['DATA_DIRECTORY'].nil? || ENV['DATA_DIRECTORY'] == ''
 ENV['PARASITE_OS'] = ENV['PARASITE_OS'].downcase
-ENV['PARASITE_USER'] = case ENV['PARASITE_OS']
-                       when 'coreos'
-                         'core'
-                       when 'hypriotos'
-                         'pi'
-                       end
+if ENV['PARASITE_USER'].nil? || ENV['PARASITE_USER'] == ''
+  ENV['PARASITE_USER'] =
+    case ENV['PARASITE_OS']
+    when 'coreos'
+      'core'
+    when 'hypriotos'
+      'pirate'
+    else
+      'root'
+    end
+end
 
 # Look for known command aliases
 case ARGV[0]
