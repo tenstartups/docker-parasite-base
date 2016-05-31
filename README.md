@@ -34,7 +34,6 @@ parasite initialization script.  These file can be manually deployed and setup, 
 
 # Mandatory values
 DOCKER_USERNAME=<docker_username>
-DOCKER_EMAIL=<docker_email>
 DOCKER_PASSWORD=<docker_password>
 DOCKER_IMAGE_PARASITE_CONFIG=your-docker-organization/your-parasite-docker-image
 CONFIG_DIRECTORY=/parasite-config
@@ -63,7 +62,7 @@ TimeoutStopSec=30
 EnvironmentFile=/parasite-config.env
 EnvironmentFile=-/parasite-config.env.local
 ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || \
-  docker login -u ${DOCKER_USERNAME} -e ${DOCKER_EMAIL} -p ${DOCKER_PASSWORD} ${DOCKER_REGISTRY_HOSTNAME}"
+  docker login -u ${DOCKER_USERNAME} -p ${DOCKER_PASSWORD} ${DOCKER_REGISTRY_HOSTNAME}"
 ExecStartPre=/usr/bin/touch /parasite-config.env.local
 ExecStartPre=/usr/bin/docker run --rm \
   -v ${CONFIG_DIRECTORY}:${CONFIG_DIRECTORY} \
