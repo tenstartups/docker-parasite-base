@@ -18,7 +18,6 @@ if [ -z "${DOCKER_IMAGE_NAME}" ]; then
 fi
 
 # Parse the image name into its parts
-# ex. "tenstartups/coreos-parasite-init:latest"
 IFS=: read repository image_tag <<<"${DOCKER_IMAGE_NAME}"
 image_tag=${image_tag:-latest}
 image_sha=$(docker inspect --type image --format "{{.Config.Image}}" ${repository}:${image_tag} | sed -E "s/^\s*(sha256:)?([a-fA-F0-9]+)\s*$/\2/" 2>/dev/null || true)

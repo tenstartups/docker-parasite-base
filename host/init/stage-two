@@ -14,30 +14,42 @@ if [ "${ABORT_PARASITE_INIT_STAGE_TWO}" = "true" ]; then
   exit 1
 fi
 
-# Create the default bridge network and extract the bridge network address
-DOCKER_VERSION=$(docker version --format '{{.Server.Version}}')
-if [[ ${DOCKER_VERSION} =~ ^1\s*\.[0-9]\.[0-9]+\s*$ ]]; then
-  DOCKER_BRIDGE_NETWORK_NAME=bridge
-  DOCKER_BRIDGE_NETWORK_ADDRESS=$(ip addr show docker0 | grep "inet " | sed -Ee 's/^\s*inet\s+([.0-9]+)\/[0-9]+\s+.+$/\1/')
-else
-  DOCKER_BRIDGE_NETWORK_NAME=parasite
-  /usr/bin/docker network rm ${DOCKER_BRIDGE_NETWORK_NAME} || true
-  /usr/bin/docker network create --driver=bridge ${DOCKER_BRIDGE_NETWORK_NAME}
-  DOCKER_BRIDGE_NETWORK_ADDRESS=$(docker network inspect --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}" ${DOCKER_BRIDGE_NETWORK_NAME} | sed -Ee 's/()(\/[0-9]+)/\1/')
+# Get the Docker server version
+DOCKER_CLIENT_VERSION=$(docker version --format '{{.Client.Version}}')
+DOCKER_SERVER_VERSION=$(docker version --format '{{.Server.Version}}')
+
+# Check for Docker client/server mismatched versions
+if [ "${DOCKER_CLIENT_VERSION}" != "${DOCKER_SERVER_VERSION}" ]; then
+  echo >&2 "Docker client version ${DOCKER_CLIENT_VERSION} mismatch with server version ${DOCKER_SERVER_VERSION}"
+  exit 1
 fi
+
+# Check for unsupported Docker version
+if [[ ${DOCKER_SERVER_VERSION} =~ ^1\s*\.[0-9]\.[0-9]+\s*$ ]]; then
+  echo >&2 "Docker version {DOCKER_SERVER_VERSION} not supported"
+  exit 1
+fi
+
+# Create the default bridge network and extract the bridge network address
+DOCKER_BRIDGE_NETWORK_NAME=parasite
+/usr/bin/docker network rm ${DOCKER_BRIDGE_NETWORK_NAME} || true
+/usr/bin/docker network create --driver=bridge ${DOCKER_BRIDGE_NETWORK_NAME}
+DOCKER_BRIDGE_NETWORK_ADDRESS=$(docker network inspect --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}" ${DOCKER_BRIDGE_NETWORK_NAME} | sed -Ee 's/()(\/[0-9]+)/\1/')
 
 # Add docker network configuration to the parasite environment files
 cat << EOF >> "<%= getenv!(:config_directory) %>/env/systemd.env"
 #
 # Additional docker network configuration variables
-DOCKER_VERSION=${DOCKER_VERSION}
+DOCKER_CLIENT_VERSION=${DOCKER_CLIENT_VERSION}
+DOCKER_SERVER_VERSION=${DOCKER_SERVER_VERSION}
 DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
 DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
 EOF
 cat << EOF >> "<%= getenv!(:config_directory) %>/env/profile.sh"
 #
 # Additional docker and host network configuration
-export DOCKER_VERSION=${DOCKER_VERSION}
+export DOCKER_CLIENT_VERSION=${DOCKER_CLIENT_VERSION}
+export DOCKER_SERVER_VERSION=${DOCKER_SERVER_VERSION}
 export DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
 export DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
 EOF
