@@ -5,7 +5,7 @@
 # http://github.com/tenstartups/parasite-docker
 #
 
-FROM tenstartups/rpi-alpine:latest
+FROM tenstartups/alpine:arm
 
 MAINTAINER Marc Lennox <marc.lennox@gmail.com>
 
