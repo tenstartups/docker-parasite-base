@@ -14,12 +14,14 @@ ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}
 ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
 ExecStart=/usr/bin/docker run \
   --privileged \
-  -v /var/run/docker.sock:/var/run/docker.sock:ro \
-  -v /dev:/dev \
-  -v /sys:/sys \
-  -e NEW_RELIC_LICENSE_KEY=${NEWRELIC_LICENSE_KEY} \
   --pid host \
   --net host \
+  -v /sys:/sys \
+  -v /dev:/dev \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
+  -e NRSYSMOND_license_key=${NEWRELIC_LICENSE_KEY} \
+  -e NRSYSMOND_logfile=stdout \
+  -e NRSYSMOND_loglevel=info \
   --name ${DOCKER_CONTAINER_NAME} \
   ${DOCKER_IMAGE_NEWRELIC_AGENT}
 ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
