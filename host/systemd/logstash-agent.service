@@ -1,6 +1,5 @@
 [Unit]
 Description=Logstash log forwarding service
-Requires=journal-collector.service
 
 [Service]
 User=root
@@ -17,14 +16,13 @@ ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/logstash
 ExecStart=/usr/bin/docker run \
   -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
   -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
-  -v <%= getenv!(:data_directory) %>/log:/var/log/logstash:ro \
-  -e HOME=<%= getenv!(:data_directory) %>/logstash \
+  -v /var/log/journal:/var/log/journal:ro \
+  -e SINCEDB_DIR=<%= getenv!(:data_directory) %>/logstash \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \
   --add-host elasticsearch:${DOCKER_BRIDGE_NETWORK_ADDRESS} \
   --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME_FULL} \
   --name ${DOCKER_CONTAINER_NAME} \
-  --entrypoint sh \
   ${DOCKER_IMAGE_LOGSTASH_AGENT} \
-  -c "rm -rf /var/lib/logstash && logstash -f ${LOGSTASH_CONFIG_FILE}"
+  logstash -f ${LOGSTASH_CONFIG_FILE}
 ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
 ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}

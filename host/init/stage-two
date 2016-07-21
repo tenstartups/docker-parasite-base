@@ -94,7 +94,6 @@ start_unit install-tools.service &
 [ "${START_DOCKER_CLEANUP}" = "true" ] && start_unit docker-cleanup.timer &
 [ "${START_DOCKER_IMAGE_UPDATE}" = "true" ] && start_unit docker-check-image-update.timer &
 [ -z "${ETCD_ENV_FILE}" ] || start_unit etcdd.service &
-[ "${START_JOURNAL_COLLECTOR}" = "true" ] && start_unit journal-collector.service &
 [ -z "${LOGSTASH_CONFIG_FILE}" ] || start_unit logstash-agent.service &
 [ -z "${NEWRELIC_LICENSE_KEY}" ] || start_unit newrelic-agent.service &
 [ -z "${SWAP_FILE}" ] || [ -z "${SWAP_SIZE_MB}" ] || start_unit swapfile.service &

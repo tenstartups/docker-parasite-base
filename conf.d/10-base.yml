@@ -83,8 +83,6 @@ systemd_units:
 <% end %>
   - name: install-tools.service
     source: systemd/install-tools.service
-  - name: journal-collector.service
-    source: systemd/journal-collector.service
 <% if coreos? %>
   - name: logstash-agent.service
     source: systemd/logstash-agent.service
