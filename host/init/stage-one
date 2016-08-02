@@ -43,7 +43,7 @@ chown -R <%= getenv!(:parasite_user) %>:<%= getenv!(:parasite_user) %> "/home/<%
   mv -fv "<%= getenv!(:config_directory) %>/systemd/parasite-init-stage-two.service" "/var/run/systemd/system"
 
 # Create symlinks for all systemd units in the systemd directory
-find "<%= getenv!(:config_directory) %>/systemd" -type f \( -name "*.path" -or -name "*.service" -or -name "*.timer" \) | while read f; do
+find "<%= getenv!(:config_directory) %>/systemd" -type f \( -name "*.mount" -or -name "*.path" -or -name "*.service" -or -name "*.timer" \) | while read f; do
   ln -fsv "$f" "/var/run/systemd/system/`basename $f`"
 done
 
