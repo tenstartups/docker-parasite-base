@@ -2,12 +2,8 @@
 Description=NewRelic system monitor agent service
 
 [Service]
-User=root
 Restart=always
-RestartSec=10s
-TimeoutStartSec=300
-TimeoutStopSec=30
-EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}

@@ -8,12 +8,6 @@ set -e
 # order serially.  Note however that cloud-config yml initializers are spawned
 # in parallel and cannot be guaranteed to run in order.
 
-# Abort stage two if environment is set
-if [ "${ABORT_PARASITE_INIT_STAGE_TWO}" = "true" ]; then
-  echo >&2 "Aborting parasite stage two initialization per ABORT_PARASITE_INIT_STAGE_TWO environment variable"
-  exit 1
-fi
-
 # Get the Docker server version
 DOCKER_CLIENT_VERSION=$(docker version --format '{{.Client.Version}}')
 DOCKER_SERVER_VERSION=$(docker version --format '{{.Server.Version}}')
@@ -37,7 +31,7 @@ DOCKER_BRIDGE_NETWORK_NAME=parasite
 DOCKER_BRIDGE_NETWORK_ADDRESS=$(docker network inspect --format "{{range .IPAM.Config}}{{.Gateway}}{{end}}" ${DOCKER_BRIDGE_NETWORK_NAME} | sed -Ee 's/()(\/[0-9]+)/\1/')
 
 # Add docker network configuration to the parasite environment files
-cat << EOF >> "<%= getenv!(:config_directory) %>/env/systemd.env"
+cat << EOF >> "<%= getenv!(:parasite_config_directory) %>/env/systemd.env"
 #
 # Additional docker network configuration variables
 DOCKER_CLIENT_VERSION=${DOCKER_CLIENT_VERSION}
@@ -45,7 +39,7 @@ DOCKER_SERVER_VERSION=${DOCKER_SERVER_VERSION}
 DOCKER_BRIDGE_NETWORK_NAME=${DOCKER_BRIDGE_NETWORK_NAME}
 DOCKER_BRIDGE_NETWORK_ADDRESS=${DOCKER_BRIDGE_NETWORK_ADDRESS}
 EOF
-cat << EOF >> "<%= getenv!(:config_directory) %>/env/profile.sh"
+cat << EOF >> "<%= getenv!(:parasite_config_directory) %>/env/profile.sh"
 #
 # Additional docker and host network configuration
 export DOCKER_CLIENT_VERSION=${DOCKER_CLIENT_VERSION}
@@ -56,11 +50,11 @@ EOF
 
 # Add coreos network configuration to the parasite environment files
 [ -f /etc/environment ] && \
-  cat /etc/environment >> "<%= getenv!(:config_directory) %>/env/systemd.env" && \
-  cat /etc/environment | sed -E 's/^(.+)$/export \1/' >> "<%= getenv!(:config_directory) %>/env/profile.sh"
+  cat /etc/environment >> "<%= getenv!(:parasite_config_directory) %>/env/systemd.env" && \
+  cat /etc/environment | sed -E 's/^(.+)$/export \1/' >> "<%= getenv!(:parasite_config_directory) %>/env/profile.sh"
 
 # Re-export variables for use in this script
-source "<%= getenv!(:config_directory) %>/env/profile.sh"
+source "<%= getenv!(:parasite_config_directory) %>/env/profile.sh"
 
 # Attempts to start a systemd unit if it exists
 start_unit() {
@@ -96,11 +90,10 @@ start_unit install-tools.service &
 [ -z "${ETCD_ENV_FILE}" ] || start_unit etcdd.service &
 [ -z "${LOGSTASH_CONFIG_FILE}" ] || start_unit logstash-agent.service &
 [ -z "${NEWRELIC_LICENSE_KEY}" ] || start_unit newrelic-agent.service &
-[ -z "${SWAP_FILE}" ] || [ -z "${SWAP_SIZE_MB}" ] || start_unit swapfile.service &
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order
-find "<%= getenv!(:config_directory) %>/init.d" -type f | sort | uniq | while read file; do
+find "<%= getenv!(:parasite_config_directory) %>/init.d" -type f | sort | uniq | while read file; do
   <% if coreos? %>___ERB_REMOVE_LINE___
   if [[ "$file" == *.yml ]]; then
     echo "Executing parasite initialization cloud-config $file..."
@@ -114,8 +107,8 @@ find "<%= getenv!(:config_directory) %>/init.d" -type f | sort | uniq | while re
 done
 
 # Start services listed in the systemd start file
-if [ -f "<%= getenv!(:config_directory) %>/systemd/start" ]; then
-  cat "<%= getenv!(:config_directory) %>/systemd/start" | sort | while read unit; do
+if [ -f "<%= getenv!(:parasite_config_directory) %>/systemd/start" ]; then
+  cat "<%= getenv!(:parasite_config_directory) %>/systemd/start" | sort | while read unit; do
     start_unit ${unit} &
   done
   wait

@@ -41,7 +41,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      file['path'] = File.join(ENV['CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
+      file['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -63,7 +63,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      file['path'] = File.join(ENV['CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
+      file['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -85,7 +85,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory systemd unit name not specified.'
         exit 1
       end
-      unit['path'] = File.join(ENV['CONFIG_DIRECTORY'], 'systemd', unit['name'])
+      unit['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'systemd', unit['name'])
       next unless unit['source'] && !unit['source'].empty?
       unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
@@ -100,7 +100,7 @@ class ParasiteConfig
       .select { |attrs| attrs['start'] == true }
       .map { |attrs| attrs['name'] }
       .each do |name|
-        File.open(File.join(ENV['CONFIG_DIRECTORY'], 'systemd', 'start'), 'a') do |f|
+        File.open(File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'systemd', 'start'), 'a') do |f|
           puts "Adding #{name} to systemd auto-start list"
           f.puts name
         end
@@ -128,11 +128,11 @@ class ParasiteConfig
 
     # Build the systemd, docker and profile environment files
     %w(systemd.env docker.env profile.sh).each do |env_type|
-      env_dir = File.join(ENV['CONFIG_DIRECTORY'], 'env')
+      env_dir = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'env')
       FileUtils.mkdir_p(env_dir)
       File.open(File.join(env_dir, env_type), 'w') do |env_file|
         environment = {}
-        Dir["#{File.join(ENV['CONFIG_DIRECTORY'], 'env.d')}/*.env"]
+        Dir["#{File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
           .sort.each do |env_part_file|
           File.readlines(env_part_file).each do |line|

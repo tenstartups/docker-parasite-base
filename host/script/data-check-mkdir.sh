@@ -14,7 +14,7 @@ fi
 
 /opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
-  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
+  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:parasite_data_directory) %> \
   ${DOCKER_IMAGE_SHELL} \
   sh -c " \
     mkdir -p ${DATA_SUBDIRECTORY} && \

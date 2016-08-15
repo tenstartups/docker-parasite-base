@@ -10,4 +10,4 @@ push: build
 	docker push $(DOCKER_IMAGE_NAME)
 
 run: build
-	docker run -it --rm -v $(PWD)/parasite-config:/parasite-config $(DOCKER_IMAGE_NAME) $(ARGS)
+	docker run -it --rm -v /var/run/docker.sock:/var/run/docker.sock -v $(PWD)/parasite-config:/parasite-config -e PARASITE_VAR=test $(DOCKER_IMAGE_NAME) $(ARGS)

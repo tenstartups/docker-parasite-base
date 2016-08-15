@@ -3,22 +3,18 @@ Description=etcd shared configuration service docker
 Conflicts=etcd.service etcd2.service
 
 [Service]
-User=root
 Restart=always
-RestartSec=10s
-TimeoutStartSec=300
-TimeoutStopSec=30
-EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
 Environment=DOCKER_CONTAINER_NAME=%n
 ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
 ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
-ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:data_directory) %>/etcd
+ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:parasite_data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
-  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:config_directory) %> \
-  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:data_directory) %> \
+  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:parasite_config_directory) %> \
+  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:parasite_data_directory) %> \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   --env-file=${ETCD_ENV_FILE} \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \

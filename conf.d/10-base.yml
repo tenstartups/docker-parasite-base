@@ -93,7 +93,3 @@ systemd_units:
 <% end %>
   - name: parasite-init-stage-two.service
     source: systemd/parasite-init-stage-two.service
-<% if coreos? %>
-  - name: swapfile.service
-    source: systemd/swapfile.service
-<% end %>

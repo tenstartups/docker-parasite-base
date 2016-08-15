@@ -4,12 +4,7 @@ Requires=parasite-init-stage-one.service
 After=parasite-init-stage-one.service
 
 [Service]
-User=root
 RemainAfterExit=true
 Restart=on-failure
-RestartSec=10s
-TimeoutStartSec=300
-TimeoutStopSec=30
-EnvironmentFile=<%= getenv!(:config_environment_file) %>
-EnvironmentFile=<%= getenv!(:config_directory) %>/env/systemd.env
-ExecStart=<%= getenv!(:config_directory) %>/init/stage-two
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
+ExecStart=<%= getenv!(:parasite_config_directory) %>/init/stage-two

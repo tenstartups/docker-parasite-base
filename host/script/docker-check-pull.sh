@@ -26,7 +26,7 @@ image_sha=$(docker inspect --type image --format "{{.Config.Image}}" ${repositor
 DOCKER_IMAGE_NAME="${repository}:${image_tag}"
 
 # Generate an id file for downstream actions to trigger off of when changed
-image_sha_file="<%= getenv!(:data_directory) %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
+image_sha_file="<%= getenv!(:parasite_data_directory) %>/docker/${DOCKER_IMAGE_NAME//\//-DOCKERSLASH-}.id"
 if ! [ -z "${image_sha}" ] && ! [ -f "${image_sha_file}" ]; then
   old_umask=`umask` && umask 000
   mkdir -p "$(dirname ${image_sha_file})"
