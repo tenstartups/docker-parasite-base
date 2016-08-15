@@ -108,15 +108,30 @@ class ParasiteConfig
   end
 
   def build_environment_files
+    # Get the parasite image name
+    begin
+      UNIXSocket.new('/var/run/docker.sock')
+    rescue Errno::ECONNREFUSED
+      STDERR.puts 'You must map the doker socket to this container at /var/run/docker.sock.'
+      exit 1
+    end
+    container_id = `cat /proc/1/cgroup | grep 'docker/' | tail -1 | sed 's/^.*\\///'`.strip
+    container_id = nil if container_id == ''
+    container_id ||= `cat /proc/1/cgroup | grep '/docker-' | tail -1 | sed -Ee 's/^.+\\/docker\-([0-9a-f]+)\\.scope$/\\1/g'`.strip
+    container_id = nil if container_id == ''
+    if container_id.nil?
+      STDERR.puts 'Unable to determine container ID.'
+      exit 1
+    end
+    docker_containers = JSON.parse(`curl -s --unix-socket /var/run/docker.sock http:/containers/json`)
+    docker_image = docker_containers.select { |e| e['Id'] == container_id }.first['Image']
+
     # Build the systemd, docker and profile environment files
-    %w( systemd.env docker.env profile.sh ).each do |env_type|
+    %w(systemd.env docker.env profile.sh).each do |env_type|
       env_dir = File.join(ENV['CONFIG_DIRECTORY'], 'env')
       FileUtils.mkdir_p(env_dir)
       File.open(File.join(env_dir, env_type), 'w') do |env_file|
-        environment = {
-          'DOCKER_HOSTNAME' => ENV['HOSTNAME'].split('.').first,
-          'DOCKER_HOSTNAME_FULL' => ENV['HOSTNAME']
-        }
+        environment = {}
         Dir["#{File.join(ENV['CONFIG_DIRECTORY'], 'env.d')}/*.env"]
           .select { |f| f =~ /^[^.]\.env$/ || f =~ /^.+\.#{File.basename(env_type, '.*')}.*\.env$/ }
           .sort.each do |env_part_file|
@@ -126,6 +141,9 @@ class ParasiteConfig
             end
           end
         end
+        environment['DOCKER_HOSTNAME'] = ENV['HOSTNAME'].split('.').first
+        environment['DOCKER_HOSTNAME_FULL'] = ENV['HOSTNAME']
+        environment['DOCKER_IMAGE_PARASITE_CONFIG'] = docker_image if %w(systemd.env profile.sh).include?(env_type)
         if env_type == 'profile.sh'
           env_file.write(<<-EOT.gsub(/^\s+/, ''))
             #!/bin/bash +x
