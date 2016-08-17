@@ -17,7 +17,7 @@ ENV \
 
 # Install base packages.
 RUN \
-  apk --update add ruby ruby-json && \
+  apk --update add ruby ruby-irb ruby-json && \
   rm -rf /var/cache/apk/*
 
 # Install gems.
