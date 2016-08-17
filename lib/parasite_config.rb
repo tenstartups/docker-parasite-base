@@ -3,8 +3,8 @@
 require 'erb'
 require 'fileutils'
 require 'ipaddr'
+require 'net_http_unix'
 require 'shellwords'
-require 'socket'
 require 'parasite_binding'
 require 'yaml'
 
@@ -109,12 +109,6 @@ class ParasiteConfig
 
   def build_environment_files
     # Get the parasite image name
-    begin
-      UNIXSocket.new('/var/run/docker.sock')
-    rescue Errno::ECONNREFUSED
-      STDERR.puts 'You must map the doker socket to this container at /var/run/docker.sock.'
-      exit 1
-    end
     container_id = `cat /proc/1/cgroup | grep 'docker/' | tail -1 | sed 's/^.*\\///'`.strip
     container_id = nil if container_id == ''
     container_id ||= `cat /proc/1/cgroup | grep '/docker-' | tail -1 | sed -Ee 's/^.+\\/docker\-([0-9a-f]+)\\.scope$/\\1/g'`.strip
@@ -123,8 +117,16 @@ class ParasiteConfig
       STDERR.puts 'Unable to determine container ID.'
       exit 1
     end
-    docker_containers = JSON.parse(`curl -s --unix-socket /var/run/docker.sock http:/containers/json`)
-    docker_image = docker_containers.select { |e| e['Id'] == container_id }.first['Image']
+    docker_image =
+      begin
+        request = Net::HTTP::Get.new('/containers/json')
+        client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
+        response = client.request(request)
+        docker_containers = JSON.parse(response.body).select { |e| e['Id'] == container_id }.first['Image']
+      rescue StandardError
+        STDERR.puts 'You must map the docker socket to this container at /var/run/docker.sock.'
+        exit 1
+      end
 
     # Build the systemd, docker and profile environment files
     %w(systemd.env docker.env profile.sh).each do |env_type|
