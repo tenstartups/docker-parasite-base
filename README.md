@@ -41,7 +41,7 @@ ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || \
   docker login -u <docker_username> -e <docker_email> -p <docker_password> <docker_registry_hostname>"
 ExecStartPre=/usr/bin/docker pull <docker_parasite_image> \
 ExecStartPre=/usr/bin/docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v /parasite-config:/parasite-config \
   -e PARASITE_CONFIG_DIRECTORY=/parasite-config \
   -e PARASITE_DATA_DIRECTORY=/parasite-data \
