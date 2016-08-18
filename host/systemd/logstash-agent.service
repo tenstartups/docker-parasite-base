@@ -4,10 +4,9 @@ Description=Logstash log forwarding service
 [Service]
 Restart=always
 EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
-Environment=DOCKER_CONTAINER_NAME=%n
-ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
+ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_LOGSTASH_AGENT}
-ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
+ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:parasite_data_directory) %>/logstash
 ExecStart=/usr/bin/docker run \
   -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:parasite_config_directory) %> \
@@ -16,9 +15,9 @@ ExecStart=/usr/bin/docker run \
   -e SINCEDB_DIR=<%= getenv!(:parasite_data_directory) %>/logstash \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \
   --add-host elasticsearch:${DOCKER_BRIDGE_NETWORK_ADDRESS} \
-  --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME} \
-  --name ${DOCKER_CONTAINER_NAME} \
+  --hostname <%= getenv!(:systemd_service_name) %>.${DOCKER_HOSTNAME} \
+  --name <%= getenv!(:systemd_service_name) %> \
   ${DOCKER_IMAGE_LOGSTASH_AGENT} \
   logstash -f ${LOGSTASH_CONFIG_FILE}
-ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
-ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}
+ExecStartPost=/opt/bin/docker-wait-container <%= getenv!(:systemd_service_name) %>
+ExecStop=/usr/bin/docker stop <%= getenv!(:systemd_service_name) %>

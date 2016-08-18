@@ -4,10 +4,9 @@ Description=NewRelic system monitor agent service
 [Service]
 Restart=always
 EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
-Environment=DOCKER_CONTAINER_NAME=%n
-ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
+ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_NEWRELIC_AGENT}
-ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
+ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStart=/usr/bin/docker run \
   --privileged \
   --pid host \
@@ -18,7 +17,7 @@ ExecStart=/usr/bin/docker run \
   -e NRSYSMOND_license_key=${NEWRELIC_LICENSE_KEY} \
   -e NRSYSMOND_logfile=stdout \
   -e NRSYSMOND_loglevel=info \
-  --name ${DOCKER_CONTAINER_NAME} \
+  --name <%= getenv!(:systemd_service_name) %> \
   ${DOCKER_IMAGE_NEWRELIC_AGENT}
-ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
-ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}
+ExecStartPost=/opt/bin/docker-wait-container <%= getenv!(:systemd_service_name) %>
+ExecStop=/usr/bin/docker stop <%= getenv!(:systemd_service_name) %>

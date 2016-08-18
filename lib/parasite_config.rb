@@ -92,6 +92,12 @@ class ParasiteConfig
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
         exit 1
       end
+      case ext = File.extname(unit['name'])
+      when '.service'
+        ENV['SYSTEMD_SERVICE_NAME'] = File.basename(unit['name'], ext)
+      when '.timer'
+        ENV['SYSTEMD_TIMER_NAME'] = File.basename(unit['name'], ext)
+      end
       deploy_file(unit['source'], unit['path'], '0644')
     end
 
@@ -184,5 +190,8 @@ class ParasiteConfig
     else
       FileUtils.chmod(permissions, target)
     end
+    # Clear environment variables
+    ENV.delete('SYSTEMD_SERVICE_NAME')
+    ENV.delete('SYSTEMD_TIMER_NAME')
   end
 end

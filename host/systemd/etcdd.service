@@ -5,10 +5,9 @@ Conflicts=etcd.service etcd2.service
 [Service]
 Restart=always
 EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
-Environment=DOCKER_CONTAINER_NAME=%n
-ExecStartPre=-/opt/bin/send-notification warn "Starting `${DOCKER_CONTAINER_NAME}` docker container"
+ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>` docker container"
 ExecStartPre=-/opt/bin/docker-check-pull ${DOCKER_IMAGE_ETCD}
-ExecStartPre=-/opt/bin/docker-check-remove ${DOCKER_CONTAINER_NAME}
+ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:parasite_data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
@@ -18,9 +17,9 @@ ExecStart=/usr/bin/docker run \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   --env-file=${ETCD_ENV_FILE} \
   --net ${DOCKER_BRIDGE_NETWORK_NAME} \
-  --hostname ${DOCKER_CONTAINER_NAME}.${DOCKER_HOSTNAME} \
-  --name ${DOCKER_CONTAINER_NAME} \
+  --hostname <%= getenv!(:systemd_service_name) %>.${DOCKER_HOSTNAME} \
+  --name <%= getenv!(:systemd_service_name) %> \
   ${DOCKER_IMAGE_ETCD}
-ExecStartPost=/opt/bin/docker-wait-container ${DOCKER_CONTAINER_NAME}
+ExecStartPost=/opt/bin/docker-wait-container <%= getenv!(:systemd_service_name) %>
 ExecStartPost=/opt/bin/etcd-wait-ready
-ExecStop=/usr/bin/docker stop ${DOCKER_CONTAINER_NAME}
+ExecStop=/usr/bin/docker stop <%= getenv!(:systemd_service_name) %>

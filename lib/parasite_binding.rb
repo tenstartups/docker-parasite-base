@@ -4,10 +4,10 @@ require 'httparty'
 require 'resolv'
 
 class ParasiteBinding
-  def getenv(key, fail_on_blank = false)
+  def getenv(key, fail_if_missing = false)
     key = nkey(key)
     value = ENV[key]
-    raise "Missing environment variable #{key}" if fail_on_blank && (value.nil? || value == '')
+    raise "Missing environment variable #{key}" if fail_if_missing && (value.nil? || value == '')
     value
   end
 
@@ -15,16 +15,16 @@ class ParasiteBinding
     getenv(key, true)
   end
 
-  %w( coreos hypriotos ).each do |os_key|
+  %w(coreos hypriotos).each do |os_key|
     define_method :"#{os_key}?" do
       getenv!(:parasite_os) == os_key
     end
   end
 
-  def choose(key, choices = {}, fail_on_blank = false)
-    value = getenv(key, fail_on_blank)
+  def choose(key, choices = {}, fail_if_missing = false)
+    value = getenv(key, fail_if_missing)
     choice = choices[value] || choices[value.to_sym]
-    raise "Missing choice for environment variable #{key} (#{value})" if fail_on_blank && (choice.nil? || choice == '')
+    raise "Missing choice for environment variable #{key} (#{value})" if fail_if_missing && (choice.nil? || choice == '')
     choice
   end
 
