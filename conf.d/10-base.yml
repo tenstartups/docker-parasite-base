@@ -84,10 +84,6 @@ systemd_units:
   - name: install-tools.service
     source: systemd/install-tools.service
 <% if coreos? %>
-  - name: logstash-agent.service
-    source: systemd/logstash-agent.service
-<% end %>
-<% if coreos? %>
   - name: newrelic-agent.service
     source: systemd/newrelic-agent.service
 <% end %>

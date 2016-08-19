@@ -1,11 +1,10 @@
 #!/bin/bash
 set -e
 
-/opt/bin/docker-check-pull ${DOCKER_IMAGE_ETCDCTL}
+/opt/bin/docker-check-pull ${PARASITE_DOCKER_IMAGE_ETCDCTL}
 /usr/bin/docker run -i --rm \
-  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:parasite_config_directory) %> \
+  -v <%= getenv!(:parasite_config_docker_volume) %>:<%= getenv!(:parasite_config_directory) %> \
   --env-file=<%= getenv!(:parasite_config_directory) %>/env/etcdctl.env \
-  --net ${DOCKER_BRIDGE_NETWORK_NAME} \
-  --link etcdd:etcd \
-  ${DOCKER_IMAGE_ETCDCTL} \
+  --net <%= getenv!(:parasite_docker_bridge_network) %> \
+  ${PARASITE_DOCKER_IMAGE_ETCDCTL} \
   "$@"

@@ -1,10 +1,10 @@
 #!/bin/bash +x
 set -e
 
-/opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
+/opt/bin/docker-check-pull "${PARASITE_DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
-  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:parasite_data_directory) %> \
+  -v <%= getenv!(:parasite_data_docker_volume) %>:<%= getenv!(:parasite_data_directory) %> \
   -v $(pwd):/tmp \
   -w "<%= getenv!(:parasite_data_directory) %>" \
-  ${DOCKER_IMAGE_SHELL} \
-  tar cvzf "/tmp/${PARASITE_DATA_BACKUP_ARCHIVE}" --exclude=./.* .
+  ${PARASITE_DOCKER_IMAGE_SHELL} \
+  tar cvzf "/tmp/<%= getenv!(:parasite_data_backup_archive) %>" --exclude=./.* .

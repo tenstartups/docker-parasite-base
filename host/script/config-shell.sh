@@ -1,9 +1,9 @@
 #!/bin/bash +x
 set -e
 
-/opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
+/opt/bin/docker-check-pull "${PARASITE_DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run -it --rm \
-  -v ${DOCKER_VOLUME_PARASITE_CONFIG}:<%= getenv!(:parasite_config_directory) %> \
+  -v "<%= getenv!(:parasite_config_docker_volume) %>":"<%= getenv!(:parasite_config_directory) %>" \
   -w "<%= getenv!(:parasite_config_directory) %>" \
-  ${DOCKER_IMAGE_SHELL} \
-  sh -c 'ls -al && exec bash'
+  ${PARASITE_DOCKER_IMAGE_SHELL} \
+  sh -c "figlet 'Parasite Config' && ls -al && exec bash"

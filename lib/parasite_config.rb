@@ -21,7 +21,7 @@ class ParasiteConfig
     @config = YAML.load(yaml) || {}
 
     # Call individual config methods
-    case ENV['MODE']
+    case Thread.current.thread_variable_get('parasite_mode')
     when 'host'
       deploy_host_files
       deploy_systemd_units
@@ -46,7 +46,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
-      file['source'] = File.join(ENV['SOURCE_DIRECTORY'], file['source']) unless file['source'].start_with?('/')
+      file['source'] = File.join(Thread.current.thread_variable_get('parasite_source_directory'), file['source']) unless file['source'].start_with?('/')
       unless File.exist?(file['source'])
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
@@ -68,7 +68,7 @@ class ParasiteConfig
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
       end
-      file['source'] = File.join(ENV['SOURCE_DIRECTORY'], file['source']) unless file['source'].start_with?('/')
+      file['source'] = File.join(Thread.current.thread_variable_get('parasite_source_directory'), file['source']) unless file['source'].start_with?('/')
       unless File.exist?(file['source'])
         STDERR.puts "File source '#{file['source']}' not found."
         exit 1
@@ -87,7 +87,7 @@ class ParasiteConfig
       end
       unit['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'systemd', unit['name'])
       next unless unit['source'] && !unit['source'].empty?
-      unit['source'] = File.join(ENV['SOURCE_DIRECTORY'], unit['source']) unless unit['source'].start_with?('/')
+      unit['source'] = File.join(Thread.current.thread_variable_get('parasite_source_directory'), unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
         exit 1
@@ -128,7 +128,7 @@ class ParasiteConfig
         request = Net::HTTP::Get.new('/containers/json')
         client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
         response = client.request(request)
-        docker_containers = JSON.parse(response.body).select { |e| e['Id'] == container_id }.first['Image']
+        JSON.parse(response.body).select { |e| e['Id'] == container_id }.first['Image']
       rescue StandardError
         STDERR.puts 'You must map the docker socket to this container at /var/run/docker.sock.'
         exit 1
@@ -149,9 +149,7 @@ class ParasiteConfig
             end
           end
         end
-        environment['DOCKER_HOSTNAME'] = ENV['HOSTNAME'].split('.').first
-        environment['DOCKER_HOSTNAME_FULL'] = ENV['HOSTNAME']
-        environment['DOCKER_IMAGE_PARASITE_CONFIG'] = docker_image if %w(systemd.env profile.sh).include?(env_type)
+        environment['PARASITE_DOCKER_IMAGE_PARASITE_CONFIG'] = docker_image if %w(systemd.env profile.sh).include?(env_type)
         if env_type == 'profile.sh'
           env_file.write(<<-EOT.gsub(/^\s+/, ''))
             #!/bin/bash +x
@@ -171,6 +169,22 @@ class ParasiteConfig
             env_file.puts("export #{env_name}=#{Shellwords.escape(environment[env_name])}")
           else
             env_file.puts("#{env_name}=#{environment[env_name]}")
+          end
+        end
+        if env_type == 'profile.sh'
+          message = File.read(File.join(File.dirname(__FILE__), 'message.txt'))
+          env_file.puts
+          env_file.write(<<-EOT.gsub(/^\s+/, ''))
+            # Dump information about the parasite configuration
+          EOT
+          message.lines.map(&:chomp).each do |line|
+            env_file.puts("echo #{Shellwords.escape(line)}")
+          end
+          env_file.puts('echo')
+          env_file.puts "echo #{Shellwords.escape("This host been taken over by a Docker Parasite (#{docker_image})!")}"
+          env_file.puts('echo')
+          ENV.select { |k, _v| k =~ /^PARASITE_/ }.sort.each do |k, v|
+            env_file.puts("echo #{Shellwords.escape("#{k}=#{v}")}")
           end
         end
       end

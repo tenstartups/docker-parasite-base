@@ -33,7 +33,7 @@ class ParasiteBinding
   end
 
   def source_files(mode, pattern, &block)
-    return unless Dir.exist?(dir = getenv!(:source_directory))
+    return unless Dir.exist?(dir = Thread.current.thread_variable_get('parasite_source_directory'))
     Dir.chdir(dir) { Dir[pattern].select { |f| File.file?(f) }.each { |f| yield(f) } }
   end
 

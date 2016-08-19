@@ -2,7 +2,7 @@
 set -e
 
 # Set environment variables
-DOCKER_IMAGE_ENV_REGEX="^\s*DOCKER_IMAGE_([_A-Z0-9]+)=(.+)\s*$"
+DOCKER_IMAGE_ENV_REGEX="^\s*PARASITE_DOCKER_IMAGE_([_A-Z0-9]+)=(.+)\s*$"
 
 # Cleanup non-running containers (excluding those labeled as volume containers)
 volume_container_ids=($(docker ps --no-trunc -a -q -f "label=${DOCKER_VOLUME_CONTAINER_LABEL}"))

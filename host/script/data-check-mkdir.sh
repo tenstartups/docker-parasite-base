@@ -12,10 +12,10 @@ if [ -z "${DATA_SUBDIRECTORY}" ]; then
   exit 1
 fi
 
-/opt/bin/docker-check-pull "${DOCKER_IMAGE_SHELL}"
+/opt/bin/docker-check-pull "${PARASITE_DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
-  -v ${DOCKER_VOLUME_PARASITE_DATA}:<%= getenv!(:parasite_data_directory) %> \
-  ${DOCKER_IMAGE_SHELL} \
+  -v <%= getenv!(:parasite_data_docker_volume) %>:<%= getenv!(:parasite_data_directory) %> \
+  ${PARASITE_DOCKER_IMAGE_SHELL} \
   sh -c " \
     mkdir -p ${DATA_SUBDIRECTORY} && \
     if ! [ -z "${PERMISSIONS}" ]; then chmod ${PERMISSIONS} ${DATA_SUBDIRECTORY}; fi && \
