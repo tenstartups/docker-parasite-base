@@ -11,10 +11,10 @@ until $(/opt/bin/etcdctl ls >/dev/null 2>&1) ; do
   failures=$((failures+1))
   if [ ${failures} -gt ${MAX_FAILURES} ]; then
     echo >&2 "Timed-out waiting for etcd to start responding."
-    /opt/bin/send-notification error "Timed-out waiting for \`etcd\` to start responding."
+    /opt/bin/send-notification error "Timed-out waiting for \`etcd\` to start answering requests."
     exit 1
   fi
   sleep 5
 done
-echo "Finished waiting for etcd to start responding."
-/opt/bin/send-notification success "Finished waiting for \`etcd\` to start responding."
+echo "Finished waiting etcd is now answering requests."
+/opt/bin/send-notification success "Finished waiting \`etcd\` is now answering requests."
