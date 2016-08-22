@@ -2,5 +2,4 @@
 Description=Docker container and image cleanup timer
 
 [Timer]
-OnBootSec=15min
-OnCalendar=daily
+OnCalendar=*-*-* 03:00:00
