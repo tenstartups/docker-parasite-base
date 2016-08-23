@@ -184,6 +184,7 @@ class ParasiteConfig
           ENV.select { |k, _v| k =~ /^PARASITE_/ }.sort.each do |k, v|
             env_file.puts("echo #{Shellwords.escape("#{k}=#{v}")}")
           end
+          FileUtils.chmod('0757'.to_i(8), env_file)
         end
       end
     end
@@ -195,7 +196,7 @@ class ParasiteConfig
     content = ERB.new(template).result(@bindings.instance_eval { binding })
     content.gsub!(/^(.*)(___ERB_REMOVE_LINE___)(.*)$\n/, '')
     FileUtils.mkdir_p(File.dirname(target))
-    open(target, 'w') { |f| f.write(content) }
+    File.write(target, content)
     return unless permissions
     if permissions =~ /[0-7]{3,4}/
       FileUtils.chmod(permissions.to_i(8), target)
