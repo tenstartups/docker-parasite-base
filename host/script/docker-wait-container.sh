@@ -4,7 +4,7 @@ set -e
 # Set environment
 DOCKER_CONTAINER_NAME=${1:-$DOCKER_CONTAINER_NAME}
 MAX_CHECKS=${2:-$MAX_CHECKS}
-MAX_CHECKS=${MAX_CHECKS:-5}
+MAX_CHECKS=${MAX_CHECKS:-10}
 
 # Exit with error if required environment is not present
 if [ -z "${DOCKER_CONTAINER_NAME}" ]; then

@@ -3,7 +3,7 @@ set -e
 
 # Set environment
 MAX_FAILURES=${1:-$MAX_FAILURES}
-MAX_FAILURES=${MAX_FAILURES:-5}
+MAX_FAILURES=${MAX_FAILURES:-10}
 
 # Wait for etcd service to respond before proceeding
 until $(/opt/bin/etcdctl ls >/dev/null 2>&1) ; do
