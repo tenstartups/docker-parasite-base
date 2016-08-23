@@ -172,15 +172,13 @@ class ParasiteConfig
           end
         end
         if env_type == 'profile.sh'
-          message = File.read(File.join(File.dirname(__FILE__), 'message.txt'))
           env_file.puts
           env_file.write(<<-EOT.gsub(/^\s+/, ''))
-            # Dump information about the parasite configuration
+            # Print out information about the parasite configuration
           EOT
-          message.lines.map(&:chomp).each do |line|
+          `figlet 'Docker Parasite!!!'`.lines.map(&:chomp).each do |line|
             env_file.puts("echo #{Shellwords.escape(line)}")
           end
-          env_file.puts('echo')
           env_file.puts "echo #{Shellwords.escape("This host been taken over by a Docker Parasite (#{docker_image})!")}"
           env_file.puts('echo')
           ENV.select { |k, _v| k =~ /^PARASITE_/ }.sort.each do |k, v|
