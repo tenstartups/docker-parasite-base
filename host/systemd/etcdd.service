@@ -6,7 +6,6 @@ Conflicts=etcd.service etcd2.service
 Restart=always
 EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
-ExecStartPre=-/opt/bin/docker-check-pull ${PARASITE_DOCKER_IMAGE_ETCD}
 ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:parasite_data_directory) %>/etcd
 ExecStart=/usr/bin/docker run \

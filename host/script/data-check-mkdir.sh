@@ -12,7 +12,6 @@ if [ -z "${DATA_SUBDIRECTORY}" ]; then
   exit 1
 fi
 
-/opt/bin/docker-check-pull "${PARASITE_DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
   -v <%= getenv!(:parasite_data_docker_volume) %>:<%= getenv!(:parasite_data_directory) %> \
   ${PARASITE_DOCKER_IMAGE_SHELL} \

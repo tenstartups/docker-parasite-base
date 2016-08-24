@@ -1,7 +1,6 @@
 #!/bin/bash
 set -e
 
-/opt/bin/docker-check-pull ${PARASITE_DOCKER_IMAGE_ETCDCTL}
 /usr/bin/docker run -i --rm \
   -v <%= getenv!(:parasite_config_docker_volume) %>:<%= getenv!(:parasite_config_directory) %> \
   --env-file=<%= getenv!(:parasite_config_directory) %>/env/etcdctl.env \

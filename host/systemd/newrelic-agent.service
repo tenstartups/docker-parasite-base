@@ -5,7 +5,6 @@ Description=NewRelic system monitor agent service
 Restart=always
 EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
-ExecStartPre=-/opt/bin/docker-check-pull ${PARASITE_DOCKER_IMAGE_NEWRELIC_AGENT}
 ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStart=/usr/bin/docker run \
   --privileged \

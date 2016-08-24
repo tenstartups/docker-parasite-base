@@ -14,7 +14,6 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
 
 # Call the notifier with our without an attachment
 {
-  /opt/bin/docker-check-pull "${PARASITE_DOCKER_IMAGE_NOTIFIER}"
   if [ -z "${FILE_ATTACHMENT}" ]; then
     /usr/bin/docker run --rm \
       --env-file="<%= getenv!(:parasite_config_directory) %>/env/docker.env" \

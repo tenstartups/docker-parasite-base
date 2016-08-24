@@ -2,7 +2,6 @@
 set -e
 
 # Initialize parasite configuration into volume
-/opt/bin/docker-check-pull "${PARASITE_DOCKER_IMAGE_SHELL}"
 /usr/bin/docker run --rm \
   -v <%= getenv!(:parasite_config_docker_volume) %>:<%= getenv!(:parasite_config_directory) %> \
 <% ENV.select { |k, _v| k.start_with?('PARASITE_') }.each do |k, v| %>___ERB_REMOVE_LINE___
