@@ -94,9 +94,9 @@ class ParasiteConfig
       end
       case ext = File.extname(unit['name'])
       when '.service'
-        ENV['SYSTEMD_SERVICE_NAME'] = File.basename(unit['name'], ext)
+        ENV['SYSTEMD_SERVICE_NAME'] = File.basename(File.basename(unit['name'], ext), '@')
       when '.timer'
-        ENV['SYSTEMD_TIMER_NAME'] = File.basename(unit['name'], ext)
+        ENV['SYSTEMD_TIMER_NAME'] = File.basename(File.basename(unit['name'], ext), '@')
       end
       deploy_file(unit['source'], unit['path'], '0644')
     end
