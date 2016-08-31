@@ -8,4 +8,4 @@ toolbox cp -R "/usr/share/bash-completion" "/media/root/var/"
 
 # Source the bash completion script in the profile
 mkdir -p "/etc/profile.d"
-echo "source /var/bash-completion/bash_completion" | sudo tee "/etc/profile.d/bash_completion.sh"
+echo "source /var/bash-completion/bash_completion" | tee "/etc/profile.d/bash_completion.sh"

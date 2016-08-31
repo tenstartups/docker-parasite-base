@@ -1,6 +1,5 @@
 [Unit]
-Description=etcd shared configuration container service
-Conflicts=etcd.service
+Description=Etcd shared configuration service
 
 [Service]
 Restart=always
@@ -8,7 +7,7 @@ EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
 ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:parasite_data_directory) %>/etcd
-ExecStartPre=/opt/bin/etcd-prepare-config
+ExecStartPre=/opt/bin/etcd-config-prepare
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
@@ -17,7 +16,6 @@ ExecStart=/usr/bin/docker run \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   --env-file <%= getenv!(:parasite_config_directory) %>/env/etcd.env \
   --net <%= getenv!(:parasite_docker_bridge_network) %> \
-  --net-alias etcd \
   --hostname <%= getenv!(:systemd_service_name) %>.<%= getenv!(:parasite_hostname_short) %> \
   --name <%= getenv!(:systemd_service_name) %> \
   ${PARASITE_DOCKER_IMAGE_ETCD}

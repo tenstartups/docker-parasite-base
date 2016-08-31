@@ -75,13 +75,6 @@ host_files:
 
 container_files:
 
-  # Container etcd scripts
-<% source_files(:container, 'script/etcd/*.sh') do |relative_path| %>
-  - path: <%= relative_path %>
-    permissions: '0755'
-    source: <%= relative_path %>
-<% end %>
-
 systemd_units:
 
   - name: docker-check-image-update.service
@@ -93,9 +86,9 @@ systemd_units:
   - name: docker-cleanup.timer
     source: systemd/docker-cleanup.timer
 <% if coreos? %>
-  - name: etcdd.service
+  - name: etcd.service
     start: true
-    source: systemd/etcdd.service
+    source: systemd/etcd.service
 <% end %>
   - name: install-tools.service
     source: systemd/install-tools.service
