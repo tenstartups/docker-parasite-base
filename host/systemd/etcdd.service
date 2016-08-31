@@ -1,6 +1,6 @@
 [Unit]
-Description=etcd shared configuration service docker
-Conflicts=etcd.service etcd2.service
+Description=etcd shared configuration container service
+Conflicts=etcd.service
 
 [Service]
 Restart=always
@@ -14,12 +14,11 @@ ExecStart=/usr/bin/docker run \
   -v <%= getenv!(:parasite_config_docker_volume) %>:<%= getenv!(:parasite_config_directory) %> \
   -v <%= getenv!(:parasite_data_docker_volume) %>:<%= getenv!(:parasite_data_directory) %> \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
-  --env-file=${ETCD_ENV_FILE} \
+  --env-file <%= getenv!(:parasite_config_directory) %>/env/etcd.env \
   --net <%= getenv!(:parasite_docker_bridge_network) %> \
-  --net-alias=etcd \
+  --net-alias etcd \
   --hostname <%= getenv!(:systemd_service_name) %>.<%= getenv!(:parasite_hostname_short) %> \
   --name <%= getenv!(:systemd_service_name) %> \
   ${PARASITE_DOCKER_IMAGE_ETCD}
 ExecStartPost=/opt/bin/docker-wait-container <%= getenv!(:systemd_service_name) %>
-ExecStartPost=/opt/bin/etcd-wait-ready
 ExecStop=/usr/bin/docker stop <%= getenv!(:systemd_service_name) %>

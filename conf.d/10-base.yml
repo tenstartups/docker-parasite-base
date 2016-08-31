@@ -7,17 +7,20 @@ host_files:
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
+<% source_files(:host, "env/#{getenv!(:parasite_os)}/*.env") do |relative_path| %>
+  - path: <%= relative_path.gsub("env/#{getenv!(:parasite_os)}/", 'env/') %>
+    permissions: '0644'
+    source: <%= relative_path %>
+<% end %>
 
-  # Environment file pieces
+  # Environment component files
 <% source_files(:host, 'env.d/*.env') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
-
-  # Logrotate configuration files
-<% source_files(:host, 'logrotate.d/*.conf') do |relative_path| %>
-  - path: <%= relative_path %>
+<% source_files(:host, "env.d/#{getenv!(:parasite_os)}/*.env") do |relative_path| %>
+  - path: <%= relative_path.gsub("env.d/#{getenv!(:parasite_os)}/", 'env.d/') %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
@@ -28,22 +31,25 @@ host_files:
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
+<% source_files(:host, "init/#{getenv!(:parasite_os)}/*") do |relative_path| %>
+  - path: <%= relative_path.gsub("init/#{getenv!(:parasite_os)}/", 'init/') %>
+    permissions: '0755'
+    source: <%= relative_path %>
+<% end %>
 
-# Initialization script pieces
+# Initialization component scripts
 <% source_files(:host, 'init.d/*.sh') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
-<% if coreos? %>
-<% source_files(:host, 'init.d/*.yml') do |relative_path| %>
-  - path: <%= relative_path %>
+<% source_files(:host, "init.d/#{getenv!(:parasite_os)}/*.yml") do |relative_path| %>
+  - path: <%= relative_path.gsub("init.d/#{getenv!(:parasite_os)}/", 'init.d/') %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
-<% end %>
 
-  # Script files
+  # General purpose scripts
 <% source_files(:host, 'script/*.sh') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
@@ -55,7 +61,7 @@ host_files:
     source: <%= relative_path %>
 <% end %>
 
-  # Tools installation scripts
+  # Tool installation scripts
 <% source_files(:host, 'tools.d/*.sh') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
@@ -63,6 +69,15 @@ host_files:
 <% end %>
 <% source_files(:host, "tools.d/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
   - path: <%= relative_path.gsub("tools.d/#{getenv!(:parasite_os)}/", 'tools.d/') %>
+    permissions: '0755'
+    source: <%= relative_path %>
+<% end %>
+
+container_files:
+
+  # Container etcd scripts
+<% source_files(:container, 'script/etcd/*.sh') do |relative_path| %>
+  - path: <%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
@@ -79,6 +94,7 @@ systemd_units:
     source: systemd/docker-cleanup.timer
 <% if coreos? %>
   - name: etcdd.service
+    start: true
     source: systemd/etcdd.service
 <% end %>
   - name: install-tools.service
