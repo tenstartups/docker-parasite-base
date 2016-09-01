@@ -2,7 +2,7 @@
 set -e
 
 # Source systemd environment variables
-. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+. <%= getenv!(:parasite_config_directory) %>/env/docker-images.env
 
 /usr/bin/docker run -it --rm \
   -v "<%= getenv!(:parasite_config_docker_volume) %>":"<%= getenv!(:parasite_config_directory) %>" \

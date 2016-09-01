@@ -2,72 +2,72 @@
 host_files:
 
   # Environment files
-<% source_files(:host, 'env/*.env') do |relative_path| %>
+<% source_files('env/*.env') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
-<% source_files(:host, "env/#{getenv!(:parasite_os)}/*.env") do |relative_path| %>
+<% source_files("env/#{getenv!(:parasite_os)}/*.env") do |relative_path| %>
   - path: <%= relative_path.gsub("env/#{getenv!(:parasite_os)}/", 'env/') %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
 
   # Environment component files
-<% source_files(:host, 'env.d/*.env') do |relative_path| %>
+<% source_files('env.d/*.env') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
-<% source_files(:host, "env.d/#{getenv!(:parasite_os)}/*.env") do |relative_path| %>
+<% source_files("env.d/#{getenv!(:parasite_os)}/*.env") do |relative_path| %>
   - path: <%= relative_path.gsub("env.d/#{getenv!(:parasite_os)}/", 'env.d/') %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
 
   # Initialization scripts
-<% source_files(:host, 'init/*') do |relative_path| %>
+<% source_files('init/*') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
-<% source_files(:host, "init/#{getenv!(:parasite_os)}/*") do |relative_path| %>
+<% source_files("init/#{getenv!(:parasite_os)}/*") do |relative_path| %>
   - path: <%= relative_path.gsub("init/#{getenv!(:parasite_os)}/", 'init/') %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
 
 # Initialization component scripts
-<% source_files(:host, 'init.d/*.sh') do |relative_path| %>
+<% source_files('init.d/*.sh') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
-<% source_files(:host, "init.d/#{getenv!(:parasite_os)}/*.yml") do |relative_path| %>
+<% source_files("init.d/#{getenv!(:parasite_os)}/*.yml") do |relative_path| %>
   - path: <%= relative_path.gsub("init.d/#{getenv!(:parasite_os)}/", 'init.d/') %>
     permissions: '0644'
     source: <%= relative_path %>
 <% end %>
 
   # General purpose scripts
-<% source_files(:host, 'script/*.sh') do |relative_path| %>
+<% source_files('script/*.sh') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
-<% source_files(:host, "script/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
+<% source_files("script/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
   - path: <%= relative_path.gsub("script/#{getenv!(:parasite_os)}/", 'script/') %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
 
   # Tool installation scripts
-<% source_files(:host, 'tools.d/*.sh') do |relative_path| %>
+<% source_files('tools.d/*.sh') do |relative_path| %>
   - path: <%= relative_path %>
     permissions: '0755'
     source: <%= relative_path %>
 <% end %>
-<% source_files(:host, "tools.d/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
+<% source_files("tools.d/#{getenv!(:parasite_os)}/*.sh") do |relative_path| %>
   - path: <%= relative_path.gsub("tools.d/#{getenv!(:parasite_os)}/", 'tools.d/') %>
     permissions: '0755'
     source: <%= relative_path %>
@@ -77,20 +77,18 @@ container_files:
 
 systemd_units:
 
+  - name: install-tools.service
+    source: systemd/install-tools.service
+  - name: parasite-init-stage-two.service
+    source: systemd/parasite-init-stage-two.service
+<% if coreos? %>
+  - name: newrelic-agent.service
+    source: systemd/coreos/newrelic-agent.service
+  - name: etcd.service
+    start: true
+    source: systemd/coreos/etcd.service
+<% end %>
   - name: docker-check-image-update.service
     source: systemd/docker-check-image-update.service
   - name: docker-cleanup.service
     source: systemd/docker-cleanup.service
-<% if coreos? %>
-  - name: etcd.service
-    start: true
-    source: systemd/etcd.service
-<% end %>
-  - name: install-tools.service
-    source: systemd/install-tools.service
-<% if coreos? %>
-  - name: newrelic-agent.service
-    source: systemd/newrelic-agent.service
-<% end %>
-  - name: parasite-init-stage-two.service
-    source: systemd/parasite-init-stage-two.service

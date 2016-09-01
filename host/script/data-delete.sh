@@ -2,7 +2,7 @@
 set -e
 
 # Source systemd environment variables
-. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+. <%= getenv!(:parasite_config_directory) %>/env/docker-images.env
 
 # Clear out the existing data volume
 /opt/bin/send-notification warn "Deleting existing \`parasite\` data files"

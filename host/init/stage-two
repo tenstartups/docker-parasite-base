@@ -45,9 +45,8 @@ echo "Finished pre-pulling all required docker images"
   /opt/bin/data-restore && \
   mv "/tmp/<%= getenv!(:parasite_data_backup_archive) %>" "/<%= getenv!(:parasite_data_backup_archive) %>.restored"
 
-# Start common systemd services and wait
+# Start tools install systemd service and wait
 start_unit install-tools.service &
-[ -z "${NEWRELIC_LICENSE_KEY}" ] || start_unit newrelic-agent.service &
 wait
 
 # Execute each initialization cloud-config or script in alphabetical order

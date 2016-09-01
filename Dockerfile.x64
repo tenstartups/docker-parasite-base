@@ -20,7 +20,7 @@ RUN \
   rm -rf /var/cache/apk/*
 
 # Install gems.
-RUN gem install httparty net_http_unix --no-document
+RUN gem install net_http_unix --no-document
 
 # Set the working directory.
 WORKDIR "/home/parasite"

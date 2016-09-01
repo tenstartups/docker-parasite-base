@@ -40,7 +40,7 @@ done
 
 # Create a symlink for the environment profile
 mkdir -p "/etc/profile.d"
-ln -fsv "<%= getenv!(:parasite_config_directory) %>/env/parasite-profile.env" "/etc/profile.d/parasite-profile.sh"
+ln -fsv "<%= getenv!(:parasite_config_directory) %>/env/profile.env" "/etc/profile.d/parasite-env.sh"
 
 # Reload the systemctl daemon to load any new systemd units
 systemctl daemon-reload

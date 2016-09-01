@@ -13,7 +13,7 @@ if [ -z "${DATA_SUBDIRECTORY}" ]; then
 fi
 
 # Source systemd environment variables
-. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+. <%= getenv!(:parasite_config_directory) %>/env/docker-images.env
 
 /usr/bin/docker run --rm \
   -v <%= getenv!(:parasite_data_docker_volume) %>:<%= getenv!(:parasite_data_directory) %> \

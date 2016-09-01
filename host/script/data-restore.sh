@@ -12,7 +12,7 @@ if ! [ -f "/tmp/<%= getenv!(:parasite_data_backup_archive) %>" ]; then
 fi
 
 # Source systemd environment variables
-. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+. <%= getenv!(:parasite_config_directory) %>/env/docker-images.env
 
 # Move existing data directories into a backup directory
 /usr/bin/docker run --rm \
