@@ -1,6 +1,9 @@
 #!/bin/bash +x
 set -e
 
+# Source systemd environment variables
+. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+
 # Clear the etcd data directory (destructive)
 /usr/bin/docker run --rm \
   -v <%= getenv!(:parasite_data_docker_volume) %>:"<%= getenv!(:parasite_data_directory) %>" \

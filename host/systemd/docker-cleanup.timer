@@ -1,5 +1,0 @@
-[Unit]
-Description=Docker container and image cleanup timer
-
-[Timer]
-OnCalendar=*-*-* 03:00:00

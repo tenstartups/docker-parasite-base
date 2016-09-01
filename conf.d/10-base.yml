@@ -79,12 +79,8 @@ systemd_units:
 
   - name: docker-check-image-update.service
     source: systemd/docker-check-image-update.service
-  - name: docker-check-image-update.timer
-    source: systemd/docker-check-image-update.timer
   - name: docker-cleanup.service
     source: systemd/docker-cleanup.service
-  - name: docker-cleanup.timer
-    source: systemd/docker-cleanup.timer
 <% if coreos? %>
   - name: etcd.service
     start: true

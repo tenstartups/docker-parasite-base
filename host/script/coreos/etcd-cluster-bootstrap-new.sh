@@ -9,7 +9,8 @@ echo "Clearing existing etcd state data..."
 
 echo "Preparing etcd configuration to bootstrap a new cluster..."
 rm -f "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
-/opt/bin/etcd-config-reset
+/opt/bin/etcd-config-prepare
+echo >> "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
 cat \
   "<%= getenv!(:parasite_config_directory) %>/env/etcd-bootstrap.env" >> \
   "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"

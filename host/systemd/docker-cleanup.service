@@ -3,5 +3,5 @@ Description=Docker container and image cleanup service
 
 [Service]
 Type=oneshot
-EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
 ExecStart=/opt/bin/docker-cleanup

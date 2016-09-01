@@ -1,6 +1,9 @@
 #!/bin/bash +x
 set -e
 
+# Source systemd environment variables
+. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+
 # Initialize parasite configuration into volume
 /usr/bin/docker run --rm \
   -v <%= getenv!(:parasite_config_docker_volume) %>:<%= getenv!(:parasite_config_directory) %> \

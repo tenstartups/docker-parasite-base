@@ -3,7 +3,7 @@ Description=NewRelic system monitor agent service
 
 [Service]
 Restart=always
-EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
 ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStart=/usr/bin/docker run \

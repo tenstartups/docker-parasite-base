@@ -9,7 +9,8 @@ echo "Clearing existing etcd state data..."
 
 echo "Preparing etcd configuration to join existing cluster as proxy..."
 rm -f "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
-/opt/bin/etcd-config-reset
+/opt/bin/etcd-config-prepare
+echo >> "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
 cat \
   "<%= getenv!(:parasite_config_directory) %>/env/etcd-proxy.env" >> \
   "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"

@@ -12,11 +12,14 @@ fi
 NOTIFIER_SENDER=$(hostname) # This assumes that /etc/hostname has the FQDN
 NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host})
 
+# Source systemd environment variables
+. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+
 # Call the notifier with our without an attachment
 {
   if [ -z "${FILE_ATTACHMENT}" ]; then
     /usr/bin/docker run --rm \
-      --env-file "<%= getenv!(:parasite_config_directory) %>/env/docker.env" \
+      --env-file "<%= getenv!(:parasite_config_directory) %>/env/parasite-container.env" \
       -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
       -e MESSAGE="${MESSAGE}" \
       --hostname=notifier.<%= getenv!(:parasite_hostname) %> \
@@ -24,7 +27,7 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
       "$@"
   else
     /usr/bin/docker run --rm \
-      --env-file "<%= getenv!(:parasite_config_directory) %>/env/docker.env" \
+      --env-file "<%= getenv!(:parasite_config_directory) %>/env/parasite-container.env" \
       -v "${FILE_ATTACHMENT}:/tmp/$(basename ${FILE_ATTACHMENT}):ro" \
       -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
       -e MESSAGE="${MESSAGE}" \

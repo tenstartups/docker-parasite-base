@@ -6,5 +6,5 @@ After=parasite-init-stage-one.service
 [Service]
 RemainAfterExit=true
 Restart=on-failure
-EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
 ExecStart=<%= getenv!(:parasite_config_directory) %>/init/stage-two

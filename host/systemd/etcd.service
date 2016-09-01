@@ -3,7 +3,7 @@ Description=Etcd shared configuration service
 
 [Service]
 Restart=always
-EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/systemd.env
+EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
 ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
 ExecStartPre=/opt/bin/data-check-mkdir <%= getenv!(:parasite_data_directory) %>/etcd

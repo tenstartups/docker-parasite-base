@@ -1,6 +1,9 @@
 #!/bin/bash +x
 set -e
 
+# Source systemd environment variables
+. <%= getenv!(:parasite_config_directory) %>/env/parasite-host.env
+
 # Clear out the existing data volume
 /opt/bin/send-notification warn "Deleting existing \`parasite\` data files"
 /usr/bin/docker run --rm \
