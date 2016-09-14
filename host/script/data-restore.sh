@@ -11,15 +11,12 @@ if ! [ -f "/tmp/<%= getenv!(:parasite_data_backup_archive) %>" ]; then
   exit 1
 fi
 
-# Source systemd environment variables
-. <%= getenv!(:parasite_config_directory) %>/env/docker-images.env
-
 # Move existing data directories into a backup directory
 /usr/bin/docker run --rm \
   -v <%= getenv!(:parasite_data_docker_volume) %>:"<%= getenv!(:parasite_data_directory) %>" \
   -w "<%= getenv!(:parasite_data_directory) %>" \
   -e "backup_dir=.backup_$(date +%Y%m%d%H%M%S)" \
-  ${PARASITE_DOCKER_IMAGE_SHELL} \
+  tenstartups/alpine:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
   sh -c "ls * >/dev/null 2>&1 && mkdir '${backup_dir}' && mv * '${backup_dir}'"
 
 # Load data from a backup tar file if present
@@ -28,6 +25,6 @@ fi
   -v <%= getenv!(:parasite_data_docker_volume) %>:"<%= getenv!(:parasite_data_directory) %>" \
   -v /tmp:/tmp \
   -w "<%= getenv!(:parasite_data_directory) %>" \
-  ${PARASITE_DOCKER_IMAGE_SHELL} \
+  tenstartups/alpine:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
   tar xvzf "/tmp/<%= getenv!(:parasite_data_backup_archive) %>"
 /opt/bin/send-notification success "Finished restoring \`parasite\` data from backup archive"

@@ -1,10 +1,34 @@
 #!/usr/bin/env ruby
 
+require 'net_http_unix'
 require 'parasite_config'
 
 # Set default parasite environment
+ENV['PARASITE_DOCKER_IMAGE_NAME'] ||=
+  begin
+    unless File.exist?('/proc/1/cgroup')
+      STDERR.puts 'Cannot find /proc/1/cgroup file.'
+      exit 1
+    end
+    container_id = `cat /proc/1/cgroup | grep 'docker/' | tail -1 | sed 's/^.*\\///'`.strip
+    container_id = nil if container_id == ''
+    container_id ||= `cat /proc/1/cgroup | grep '/docker-' | tail -1 | sed -Ee 's/^.+\\/docker\-([0-9a-f]+)\\.scope$/\\1/g'`.strip
+    container_id = nil if container_id == ''
+    if container_id.nil?
+      STDERR.puts 'Unable to determine container ID.'
+      exit 1
+    end
+    unless File.socket?('/var/run/docker.sock')
+      STDERR.puts 'You must map the docker socket to this container at /var/run/docker.sock.'
+      exit 1
+    end
+    request = Net::HTTP::Get.new('/containers/json')
+    client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
+    response = client.request(request)
+    JSON.parse(response.body).select { |e| e['Id'] == container_id }.first['Image']
+  end
 ENV['PARASITE_OS'] = ENV['PARASITE_OS'].downcase
-if ENV['PARASITE_USER'].nil? || ENV['PARASITE_USER'] == ''
+ENV['PARASITE_USER'] ||=
   ENV['PARASITE_USER'] =
     case ENV['PARASITE_OS']
     when 'coreos'
@@ -14,7 +38,6 @@ if ENV['PARASITE_USER'].nil? || ENV['PARASITE_USER'] == ''
     else
       'root'
     end
-end
 ENV['PARASITE_HOSTNAME'] = ENV['HOSTNAME'] if ENV['PARASITE_HOSTNAME'].nil? || ENV['PARASITE_HOSTNAME'] == ''
 ENV['PARASITE_HOSTNAME_SHORT'] = ENV['PARASITE_HOSTNAME'].split('.').first if ENV['PARASITE_HOSTNAME_SHORT'].nil? || ENV['PARASITE_HOSTNAME_SHORT'] == ''
 ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] = 'parasite' if ENV['PARASITE_DOCKER_BRIDGE_NETWORK'].nil? || ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] == ''

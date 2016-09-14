@@ -3,5 +3,4 @@ Description=Docker check image update service
 
 [Service]
 Type=oneshot
-EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/docker-images.env
 ExecStart=/opt/bin/docker-check-pull-all

@@ -1,13 +1,6 @@
 #!/bin/bash
 set -e
 
-# Prevent re-entry into this script
-if [ "${DOCKER_CHECK_PULL_ENTRY_COUNT:-0}" -gt 0 ]; then
-  exit 0
-else
-  export DOCKER_CHECK_PULL_ENTRY_COUNT=$((DOCKER_CHECK_PULL_ENTRY_COUNT+1))
-fi
-
 # Set environment variables with defaults
 DOCKER_IMAGE_NAME="${1:-$DOCKER_IMAGE_NAME}"
 

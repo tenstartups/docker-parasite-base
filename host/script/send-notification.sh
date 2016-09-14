@@ -18,9 +18,6 @@ fi
 NOTIFIER_SENDER=$(hostname) # This assumes that /etc/hostname has the FQDN
 NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host})
 
-# Source systemd environment variables
-. <%= getenv!(:parasite_config_directory) %>/env/docker-images.env
-
 # Call the notifier with our without an attachment
 {
   if [ -z "${FILE_ATTACHMENT}" ]; then
@@ -29,7 +26,7 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
       -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
       -e MESSAGE="${MESSAGE}" \
       --hostname=notifier.<%= getenv!(:parasite_hostname) %> \
-      ${PARASITE_DOCKER_IMAGE_NOTIFIER} \
+      tenstartups/notifier:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
       "$@"
   else
     /usr/bin/docker run --rm \
@@ -39,7 +36,7 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
       -e MESSAGE="${MESSAGE}" \
       -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \
       --hostname=notifier.<%= getenv!(:parasite_hostname) %> \
-      ${PARASITE_DOCKER_IMAGE_NOTIFIER} \
+      tenstartups/notifier:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
       "$@"
   fi
 

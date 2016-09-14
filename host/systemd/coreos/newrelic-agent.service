@@ -3,7 +3,6 @@ Description=NewRelic system monitor agent service
 
 [Service]
 Restart=always
-EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/docker-images.env
 EnvironmentFile=<%= getenv!(:parasite_config_directory) %>/env/newrelic-agent.env
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
 ExecStartPre=-/opt/bin/docker-check-remove <%= getenv!(:systemd_service_name) %>
@@ -18,6 +17,6 @@ ExecStart=/usr/bin/docker run \
   -e NRSYSMOND_logfile=stdout \
   -e NRSYSMOND_loglevel=info \
   --name <%= getenv!(:systemd_service_name) %> \
-  ${PARASITE_DOCKER_IMAGE_NEWRELIC_AGENT}
+  newrelic/nrsysmond:latest
 ExecStartPost=/opt/bin/docker-wait-container <%= getenv!(:systemd_service_name) %>
 ExecStop=/usr/bin/docker stop <%= getenv!(:systemd_service_name) %>
