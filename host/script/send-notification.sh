@@ -7,13 +7,6 @@ if ! [ -f "<%= getenv!(:parasite_config_directory) %>/env/notifier.env" ]; then
   exit 0
 fi
 
-# Prevent re-entry into this script
-if [ "${SEND_NOTIFICATION_ENTRY_COUNT:-0}" -gt 0 ]; then
-  exit 0
-else
-  export SEND_NOTIFICATION_ENTRY_COUNT=$((SEND_NOTIFICATION_ENTRY_COUNT+1))
-fi
-
 # Set environment
 NOTIFIER_SENDER=$(hostname) # This assumes that /etc/hostname has the FQDN
 NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host})
@@ -25,7 +18,6 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
       --env-file "<%= getenv!(:parasite_config_directory) %>/env/notifier.env" \
       -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
       -e MESSAGE="${MESSAGE}" \
-      --hostname=notifier.<%= getenv!(:parasite_hostname) %> \
       tenstartups/notifier:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
       "$@"
   else
@@ -35,7 +27,6 @@ NOTIFIER_SENDER=$(IFS=. read host domain <<<"${NOTIFIER_SENDER}" && echo ${host}
       -e NOTIFIER_SENDER=${NOTIFIER_SENDER} \
       -e MESSAGE="${MESSAGE}" \
       -e FILE_ATTACHMENT="$(basename ${FILE_ATTACHMENT})" \
-      --hostname=notifier.<%= getenv!(:parasite_hostname) %> \
       tenstartups/notifier:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
       "$@"
   fi

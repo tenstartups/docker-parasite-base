@@ -13,10 +13,4 @@ fi
 
 # Remove the container if present
 container_id=$(docker inspect --type container --format "{{.Id}}" ${DOCKER_CONTAINER_NAME} 2>/dev/null || true)
-if ! [ -z "${container_id}" ]; then
-  old_umask=`umask` && umask 000 && exec 200>/tmp/.docker.lockfile && umask ${old_umask}
-  if flock --exclusive --wait 30 200; then
-    docker rm -f -v "${DOCKER_CONTAINER_NAME}"
-    flock --unlock 200
-  fi
-fi
+[ -z "${container_id}" ] || docker rm --force --volumes "${DOCKER_CONTAINER_NAME}"

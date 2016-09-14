@@ -26,13 +26,13 @@ start_unit() {
   systemctl start ${systemd_unit}
 }
 
-# Pre-pull all docker images at the start to ensure a smoother initialization
-echo "Pre-pulling all required docker images"
-start_unit docker-check-image-update.service
-echo "Finished pre-pulling all required docker images"
-
 # Notify that we started
 /opt/bin/send-notification warn "Starting \`docker-parasite\` initialization"
+
+# Pre-pull all docker images at the start to ensure a smoother initialization
+/opt/bin/send-notification warn "Checking for newer docker images"
+start_unit docker-check-image-update.service
+/opt/bin/send-notification success "Finished checking for newer docker images"
 
 # Create the parasite configuration volume and initialize configuration into it
 /usr/bin/docker volume create --name <%= getenv!(:parasite_config_docker_volume) %>
