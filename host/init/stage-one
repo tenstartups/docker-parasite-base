@@ -26,16 +26,10 @@ find "<%= getenv!(:parasite_config_directory) %>/systemd" -type f \( -name "*.mo
   ln -fsv "$f" "/var/run/systemd/system/`basename $f`"
 done
 
-# Create symlinks for all scipts to the /opt/bin directory without the .sh extension
+# Create symlinks for all scripts to the /opt/bin directory without the .sh extension
 mkdir -p "/opt/bin"
 find "<%= getenv!(:parasite_config_directory) %>/script" -type f -iname "*.sh" | while read f; do
   ln -fsv "$f" "/opt/bin/`basename ${f%.sh}`"
-done
-
-# Create symlinks for logrotate configurations
-rm -f /etc/logrotate.d/*.conf
-find "<%= getenv!(:parasite_config_directory) %>/logrotate.d" -type f \( -name "*.conf" \) | while read f; do
-  ln -fsv "$f" "/etc/logrotate.d/`basename $f`"
 done
 
 # Create a symlink for the environment profile

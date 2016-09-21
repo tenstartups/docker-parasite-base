@@ -9,7 +9,7 @@ set -e
 # in parallel and cannot be guaranteed to run in order.
 
 # Check for unsupported Docker version
-if [[ $(docker version --format '{{.Server.Version}}') =~ ^1\s*\.[0-9]\.[0-9]+\s*$ ]]; then
+if ! [[ $(docker version --format '{{.Server.Version}}') =~ ^1\s*\.1[0-2]\.[0-9]+\s*$ ]]; then
   echo >&2 "Docker version must be at least 1.10.x"
   exit 1
 fi
@@ -36,14 +36,16 @@ start_unit docker-check-image-update.service
 
 # Create the parasite configuration volume and initialize configuration into it
 /usr/bin/docker volume create --name <%= getenv!(:parasite_config_docker_volume) %>
-/opt/bin/config-initialize
+/opt/bin/parasite-config-init
 
-# Create the parasite data volume and load from backup archive if present
-/usr/bin/docker volume create --name <%= getenv!(:parasite_config_docker_volume) %>
+# Restore existing parasite data from backup archive if present
 [ -f "/<%= getenv!(:parasite_data_backup_archive) %>" ] && \
-  mv "/<%= getenv!(:parasite_data_backup_archive) %>" "/tmp/<%= getenv!(:parasite_data_backup_archive) %>" && \
-  /opt/bin/data-restore && \
-  mv "/tmp/<%= getenv!(:parasite_data_backup_archive) %>" "/<%= getenv!(:parasite_data_backup_archive) %>.restored"
+  /opt/bin/parasite-data-restore && \
+  mv "/<%= getenv!(:parasite_data_backup_archive) %>" "/<%= getenv!(:parasite_data_backup_archive) %>.restored"
+
+# Migrate the legacy parasite data volume to individual volumes
+/usr/bin/docker volume inspect <%= getenv!(:parasite_data_docker_volume) %> >/dev/null 2>&1 && \
+  /opt/bin/parasite-data-migrate
 
 # Start tools install systemd service and wait
 start_unit install-tools.service &

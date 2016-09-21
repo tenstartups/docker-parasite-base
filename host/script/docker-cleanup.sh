@@ -15,7 +15,7 @@ done
 # Cleanup non-running containers
 for container_id in $(docker ps --no-trunc --quiet --all --filter 'status=created' --filter 'status=exited' --filter 'status=dead'); do
   echo "Removing non-running docker container ${container_id:0:12}"
-  docker rm --volume ${container_id} >/dev/null 2>&1 || true
+  docker rm --force --volumes ${container_id} >/dev/null 2>&1 || true
   if [ -z $(docker inspect --type container --format "{{.Id}}" ${container_id} >/dev/null 2>&1) ]; then
     /opt/bin/send-notification success "Removed non-running docker container \`${container_id:0:12}\`"
   else
@@ -26,7 +26,7 @@ done
 # Cleanup dangling images
 for image_id in $(docker images --no-trunc --quiet --filter 'dangling=true' --format "{{.ID}}"); do
   echo "Removing dangling docker image ${image_id:0:19}"
-  docker rmi ${image_id} >/dev/null 2>&1 || true
+  docker rmi --force ${image_id} >/dev/null 2>&1 || true
   if [ -z $(docker inspect --type image --format "{{.Id}}" ${image_id} >/dev/null 2>&1) ]; then
     /opt/bin/send-notification success "Removed dangling docker image \`${image_id:0:19}\`"
   else

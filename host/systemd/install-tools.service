@@ -5,5 +5,5 @@ Description=Operating system tools installation service
 User=root
 Type=oneshot
 ExecStartPre=-/opt/bin/send-notification warn "Starting `<%= getenv!(:systemd_service_name) %>`"
-ExecStart=/opt/bin/install-tools
+ExecStart=/opt/bin/parasite-tools-install
 ExecStartPost=-/opt/bin/send-notification success "Finished `<%= getenv!(:systemd_service_name) %>`"
