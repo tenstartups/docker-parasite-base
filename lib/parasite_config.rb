@@ -157,7 +157,8 @@ class ParasiteConfig
       `figlet 'Docker Parasite!!!'`.lines.map(&:chomp).each do |line|
         file.puts("echo #{Shellwords.escape(line)}")
       end
-      file.puts "echo #{Shellwords.escape("This host been taken over by a Docker Parasite (#{ENV['PARASITE_DOCKER_IMAGE_NAME']})!")}\\n"
+      file.puts "echo #{Shellwords.escape("This host been taken over by a Docker Parasite (#{ENV['PARASITE_DOCKER_IMAGE_NAME']})!")}"
+      file.puts 'echo'
       ENV.select { |k, _v| k =~ /^PARASITE_/ }.sort.each do |k, v|
         file.puts("echo #{Shellwords.escape("#{k}=#{v}")}")
       end
