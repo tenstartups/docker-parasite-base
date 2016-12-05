@@ -9,19 +9,21 @@ This Docker image is not meant to be used on its own, but instead should be used
 ### Parasite directory structure
 
     .
-    ├── conf.d         # YAML instructions on how to deploy files in the host and container directories.
-    ├── container      # Container configurations files.
-    │   ├── conf       # Configuration files for each specific container service.
-    │   ├── env        # Environment files (*.env) used inside of container services
-    │   └── script     # Bash scripts used inside of container services.
-    ├── host           # Host configuration files.
-    │   ├── env.d      # Individual environment files (*.env) that are merged into single files for systemd, docker and bash profile.
-    │   ├── init       # Core initialization scripts that are used to bootstrap a new machine (base image only).
-    │   ├── init.d     # Additional initialization bash scripts (*.sh) or cloud config (*.yml) run during stage two initialization.
-    │   ├── script     # Bash scripts used in the host to perform various operations.
-    │   ├── systemd    # Systemd unit descriptors for running all the services of your application.
-    │   └── tools.d    # Individual tools installation scripts called by the tools-install systemd service on startup.
-    ├── Dockerfile     # Source files (alternatively `lib` or `app`)
+    ├── files            # Container configurations files organized by container named subdirectories.
+    │   ├── host         # Host configuration files.
+    │   │   ├── env      # Core initialization scripts that are used to bootstrap a new machine (base image only).
+    │   │   ├── init     # Core initialization scripts that are used to bootstrap a new machine (base image only).
+    │   │   ├── script   # System utility scripts used in the host to perform various operations.
+    │   │   ├── startup  # Startup scripts that are run during the second stage initialization before system services are started.
+    │   │   └── systemd  # Systemd unit descriptors for running all the services of your application.
+    │   ├── service-1    # Configuration files service-1 organized by the service's requirements.
+    │   │   └── ...
+    │   ├── service-2    # Configuration files service-2 organized by the service's requirements.
+    │   │   └── ...
+    │   └── ...
+    ├── lib              # Ruby source files
+    ├── 10-base.yml      # YAML instructions on how to deploy files for this docker image (use numeric naming convention to ensure proper ordering during execution).
+    ├── Dockerfile
     └── README.md
 
 In order to create your own application-specific parasite image you should follow the specified directory structure and then publish the image to a private docker registry that your server machines can contact on boot.  You will need to initialize your server with a systemd service unit to start the parasite initialization process (see example
@@ -56,4 +58,4 @@ ExecStartPre=/usr/bin/docker run --rm \
 
 The initialization process copies files from the image to a specified target location, which can be set with the PARASITE_CONFIG_DIRECTORY environment variable (default is /parasite-config).
 
-You will need to create a configuration file in the `conf.d` directory that describes how to copy files from the image to the target.  The configuration files in `conf.d` are processed in alphabetical order, starting with `10-base.yml`, then yours (suggest calling it `20-something` aftewards.  Your Dockerfile should copy the contents of `host` and `container` to a directory that is the same name as the coniguration file, such as `20-something`.  Note that you can create multiple configuration files in the `conf.d` directory as long as they all start with the same prefix (`20-something-something` for example).  Every file copies is processed through ERB, therefore any required environment should be set in the /parasite-config.env file.
+You will need to create a configuration file in the `files` directory that describes how to copy files from the image to the target.  The configuration files in `files` are processed in alphabetical order, starting with `10-base.yml`, then yours (suggest calling it `20-something` aftewards.  Your Dockerfile should copy the contents of `host` and `container` to a directory that is the same name as the coniguration file, such as `20-something`.  Note that you can create multiple configuration files in the `files` directory as long as they all start with the same prefix (`20-something-something` for example).  Every file copies is processed through ERB, therefore any required environment should be set in the /parasite-config.env file.

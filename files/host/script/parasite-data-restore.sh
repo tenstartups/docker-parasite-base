@@ -16,8 +16,8 @@ echo "Moving existing parasite data into a backup directory"
 for data_volume in ${data_volume_names}; do
   data_directory=${data_volume#<%= getenv!(:parasite_data_docker_volume) %>-}
   /usr/bin/docker run --rm \
-    -v ${data_volume}:"<%= getenv!(:parasite_data_directory) %>/${data_directory}" \
-    -w "<%= getenv!(:parasite_data_directory) %>/${data_directory}" \
+    -v ${data_volume}:/tmp/data/${data_directory} \
+    -w /tmp/data/${data_directory} \
     -e "backup_dir=.backup_$(date +%Y%m%d%H%M%S)" \
     tenstartups/alpine:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \
     sh -c "ls * >/dev/null 2>&1 && mkdir '${backup_dir}' && mv * '${backup_dir}'"
@@ -32,11 +32,11 @@ EOF
 for data_volume in ${data_volume_names}; do
   data_directory=${data_volume#<%= getenv!(:parasite_data_docker_volume) %>-}
 cat << EOF >> "${tempfile}"
-  -v <%= getenv!(:parasite_data_docker_volume) %>-${data_directory}:"<%= getenv!(:parasite_data_directory) %>/${data_directory}" \\
+  -v <%= getenv!(:parasite_data_docker_volume) %>-${data_directory}:/tmp/data/${data_directory} \\
 EOF
 done
 cat << EOF >> "${tempfile}"
-  -w "<%= getenv!(:parasite_data_directory) %>" \\
+  -w /tmp/data \\
   tenstartups/alpine:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \\
   tar xvzf "/tmp/<%= getenv!(:parasite_data_backup_archive) %>"
 EOF

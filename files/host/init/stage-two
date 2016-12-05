@@ -3,16 +3,12 @@ set -e
 
 # This is the second stage initialization and is responsible for bringing up the
 # application from scrach, which includes downloading required docker images and
-# running services.  The second stage is divided into separate configs and/or
-# scripts located in the init.d directory, which are executed in alphabetical
-# order serially.  Note however that cloud-config yml initializers are spawned
-# in parallel and cannot be guaranteed to run in order.
+# running services.
 
 # Check for unsupported Docker version
-if ! [[ $(docker version --format '{{.Server.Version}}') =~ ^1\s*\.1[0-2]\.[0-9]+\s*$ ]]; then
-  echo >&2 "Docker version must be at least 1.10.x"
+! [[ $(docker version --format '{{.Server.Version}}') =~ ^1\s*\.1[0-2]\.[0-9]+\s*$ ]] && \
+  echo >&2 "Docker version must be at least 1.10.x" && \
   exit 1
-fi
 
 # Create the default bridge network and extract the bridge network address
 /usr/bin/docker network rm <%= getenv!(:parasite_docker_bridge_network) %> || true
@@ -34,35 +30,16 @@ start_unit() {
 start_unit docker-check-image-update.service
 /opt/bin/send-notification success "Finished checking for newer docker images"
 
-# Create the parasite configuration volume and initialize configuration into it
-/usr/bin/docker volume create --name <%= getenv!(:parasite_config_docker_volume) %>
-/opt/bin/parasite-config-init
-
 # Restore existing parasite data from backup archive if present
 [ -f "/<%= getenv!(:parasite_data_backup_archive) %>" ] && \
   /opt/bin/parasite-data-restore && \
   mv "/<%= getenv!(:parasite_data_backup_archive) %>" "/<%= getenv!(:parasite_data_backup_archive) %>.restored"
 
-# Migrate the legacy parasite data volume to individual volumes
-/usr/bin/docker volume inspect <%= getenv!(:parasite_data_docker_volume) %> >/dev/null 2>&1 && \
-  /opt/bin/parasite-data-migrate
-
-# Start tools install systemd service and wait
-start_unit install-tools.service &
-wait
-
-# Execute each initialization cloud-config or script in alphabetical order
-find "<%= getenv!(:parasite_config_directory) %>/init.d" -type f | sort | uniq | while read file; do
-  <% if coreos? %>___ERB_REMOVE_LINE___
-  if [[ "$file" == *.yml ]]; then
-    echo "Executing parasite initialization cloud-config $file..."
-    coreos-cloudinit --from-file="$file"
-  fi
-  <% end %>___ERB_REMOVE_LINE___
-  if [[ "$file" == *.sh ]]; then
-    echo "Executing parasite initialization script $file..."
-    "$file"
-  fi
+# Execute each system startup script in alphabetical order
+find "<%= getenv!(:parasite_config_directory) %>/startup" -type f | sort | uniq | while read file; do
+  /opt/bin/send-notification warn "Executing \`$(basename ${file})\` parasite startup script..."
+  su -c "${file}"
+  /opt/bin/send-notification success "Finished executing \`$(basename ${file})\` parasite startup script."
 done
 
 # Start services listed in the systemd start file

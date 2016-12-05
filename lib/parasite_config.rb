@@ -48,14 +48,14 @@ class ParasiteConfig
         else
           'root'
         end
-    ENV['PARASITE_HOSTNAME'] = ENV['HOSTNAME'] if ENV['PARASITE_HOSTNAME'].nil? || ENV['PARASITE_HOSTNAME'] == ''
-    ENV['PARASITE_HOSTNAME_SHORT'] = ENV['PARASITE_HOSTNAME'].split('.').first if ENV['PARASITE_HOSTNAME_SHORT'].nil? || ENV['PARASITE_HOSTNAME_SHORT'] == ''
-    ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] = 'parasite' if ENV['PARASITE_DOCKER_BRIDGE_NETWORK'].nil? || ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] == ''
-    ENV['PARASITE_CONFIG_DOCKER_VOLUME'] = 'parasite-config' if ENV['PARASITE_CONFIG_DOCKER_VOLUME'].nil? || ENV['PARASITE_CONFIG_DOCKER_VOLUME'] == ''
-    ENV['PARASITE_DATA_DOCKER_VOLUME'] = 'parasite-data' if ENV['PARASITE_DATA_DOCKER_VOLUME'].nil? || ENV['PARASITE_DATA_DOCKER_VOLUME'] == ''
-    ENV['PARASITE_CONFIG_DIRECTORY'] = '/parasite-config' if ENV['PARASITE_CONFIG_DIRECTORY'].nil? || ENV['PARASITE_CONFIG_DIRECTORY'] == ''
-    ENV['PARASITE_DATA_DIRECTORY'] = '/parasite-data' if ENV['PARASITE_DATA_DIRECTORY'].nil? || ENV['PARASITE_DATA_DIRECTORY'] == ''
-    ENV['PARASITE_DATA_BACKUP_ARCHIVE'] = 'parasite-data.tar.gz' if ENV['PARASITE_DATA_BACKUP_ARCHIVE'].nil? || ENV['PARASITE_DATA_BACKUP_ARCHIVE'] == ''
+    ENV['PARASITE_HOSTNAME'] ||= ENV['HOSTNAME']
+    ENV['PARASITE_HOSTNAME_SHORT'] ||= ENV['PARASITE_HOSTNAME'].split('.').first
+    ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] ||= 'parasite'
+    ENV['PARASITE_CONFIG_DOCKER_VOLUME'] ||= 'parasite-config'
+    ENV['PARASITE_DATA_DOCKER_VOLUME'] ||= 'parasite-data'
+    ENV['PARASITE_CONFIG_DIRECTORY'] = Thread.current.thread_variable_get('parasite_config_directory') || ENV['PARASITE_CONFIG_DIRECTORY'] || '/parasite-config'
+    ENV['PARASITE_DATA_DIRECTORY'] ||= '/parasite-data'
+    ENV['PARASITE_DATA_BACKUP_ARCHIVE'] ||= 'parasite-data.tar.gz'
   end
 
   def backup_existing_files
@@ -79,7 +79,7 @@ class ParasiteConfig
         File.join(
           '.',
           File.basename(config_file)[/([0-9]+\-[a-z0-9]+)(\-.+)?\.yml/, 1],
-          Thread.current.thread_variable_get('parasite_mode')
+          Thread.current.thread_variable_get('parasite_service_name').tr('_', '-')
         )
       )
       @bindings = ParasiteBinding.new
@@ -90,13 +90,11 @@ class ParasiteConfig
       @config = YAML.load(yaml) || {}
 
       # Call individual config methods
-      case Thread.current.thread_variable_get('parasite_mode')
-      when 'host'
-        deploy_host_files
+      parasite_service_name = Thread.current.thread_variable_get('parasite_service_name')
+      deploy_service_files(parasite_service_name)
+      if parasite_service_name == 'host'
         deploy_systemd_units
         build_environment_files
-      when 'container'
-        deploy_container_files
       end
 
       # Unset the source directory thread variable
@@ -106,30 +104,8 @@ class ParasiteConfig
 
   private
 
-  def deploy_host_files
-    return unless (host_files = @config['host_files']) && !host_files.empty?
-    host_files.each do |file|
-      # Check for required arguments
-      unless file['path'] && !file['path'].empty?
-        STDERR.puts 'Mandatory file path not specified.'
-        exit 1
-      end
-      file['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
-      unless file['source'] && !file['source'].empty?
-        STDERR.puts 'Mandatory file source not specified.'
-        exit 1
-      end
-      file['source'] = File.join(Thread.current.thread_variable_get('parasite_source_directory'), file['source']) unless file['source'].start_with?('/')
-      unless File.exist?(file['source'])
-        STDERR.puts "File source '#{file['source']}' not found."
-        exit 1
-      end
-      deploy_file(file['source'], file['path'], file['permissions'])
-    end
-  end
-
-  def deploy_container_files
-    return unless (container_files = @config['container_files']) && !container_files.empty?
+  def deploy_service_files(parasite_service_name)
+    return if (container_files = @config["#{parasite_service_name}_files"]).nil? || container_files.empty?
     container_files.each do |file|
       # Check for required arguments
       unless file['path'] && !file['path'].empty?
@@ -160,6 +136,7 @@ class ParasiteConfig
       end
       unit['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'systemd', unit['name'])
       next unless unit['source'] && !unit['source'].empty?
+      unit['source'] = File.join('systemd', unit['source']) unless unit['source'].start_with?('systemd') || unit['source'].start_with?('/')
       unit['source'] = File.join(Thread.current.thread_variable_get('parasite_source_directory'), unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
@@ -189,37 +166,13 @@ class ParasiteConfig
   def build_environment_files
     # Ensure the environment file directory is created
     env_dir = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'env')
-    env_components_dir = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'env.d')
     FileUtils.mkdir_p(env_dir)
-
-    # Write out combined environment files by combining the individual parts with same name suffix
-    Dir["#{env_components_dir}/*.env"]
-      .each_with_object({}) { |p, h| (h[p[%r{^\s*(.+)/[0-9]+\-(?<env_group_name>[^/]+)\.env\s*$}, :env_group_name]] ||= []) << p }
-      .each do |env_group_name, env_group_files|
-      environment = {}
-      env_group_files.sort.each do |env_group_file|
-        File.readlines(env_group_file).each do |line|
-          if (match = /^\s*(?<name>[^#][^=]+)[=](?<value>.+)$/.match(line))
-            environment[match[:name]] = match[:value]
-          end
-        end
-      end
-      File.open(File.join(env_dir, "#{env_group_name}.env"), 'w') do |file|
-        file.write(<<-EOT.gsub(/^\s+/, ''))
-          # Do not edit this file.  It is automatically generated by the parasite
-          # initialization process from individual entries in the env.d directory
-        EOT
-        environment.keys.sort.each do |env_name|
-          file.puts("#{env_name}=#{environment[env_name]}")
-        end
-      end
-    end
 
     File.open(File.join(env_dir, 'profile.env'), 'w') do |file|
       file.write(<<-EOT.gsub(/^\s+/, ''))
         #!/bin/bash +x
         # Do not edit this file.  It is automatically generated by the parasite
-        # initialization process from individual entries in the env.d directory
+        # initialization process.
 
         export PATH=/opt/bin:$PATH
 

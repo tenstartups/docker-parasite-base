@@ -1,18 +1,14 @@
 #!/usr/bin/env ruby
+require 'parasite_config'
 
-# Look for known command aliases
-case ARGV[0]
-when /host|container/
-  require 'parasite_config'
-  Thread.current.thread_variable_set('parasite_mode', ARGV.shift)
-  puts "Deploying parasite files in #{Thread.current.thread_variable_get('parasite_mode')} mode..."
+STDERR.puts('Specify the service name as the first argument and optional target directory as the second') && exit(1) if ARGV[0].nil?
 
-  # Prepare parasite environment variables
-  parasite_config = ParasiteConfig.new
-  parasite_config.set_environment
-  parasite_config.backup_existing_files
-  parasite_config.process_config_files('./conf.d')
-end
+Thread.current.thread_variable_set('parasite_service_name', ARGV[0].tr('-', '_'))
+Thread.current.thread_variable_set('parasite_config_directory', ARGV[1])
+puts "Deploying #{Thread.current.thread_variable_get('parasite_service_name')} parasite configuration files..."
 
-# Execute the passed in command if provided
-exec(*ARGV) unless ARGV.empty?
+# Prepare parasite environment variables
+parasite_config = ParasiteConfig.new
+parasite_config.set_environment
+parasite_config.backup_existing_files
+parasite_config.process_config_files('conf.d')

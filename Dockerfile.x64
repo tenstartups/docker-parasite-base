@@ -25,13 +25,14 @@ RUN gem install net_http_unix --no-document
 # Set the working directory.
 WORKDIR "/home/parasite"
 
-# Add files to the container.
-COPY conf.d conf.d
+# Copy source files and entrypoint.
 COPY lib lib
 COPY entrypoint.rb /docker-entrypoint
-# The directory name under the parasite directory must match the name of the conf.d script
-COPY host 10-base/host
-COPY container 10-base/container
+
+# Copy parasite files.
+COPY conf.d conf.d
+# The directory name under parasite must match the name of the conf.d script
+COPY files 10-base
 
 # Set the entrypoint script.
 ENTRYPOINT ["/docker-entrypoint"]
