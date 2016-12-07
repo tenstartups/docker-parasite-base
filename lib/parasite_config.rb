@@ -16,15 +16,22 @@ class ParasiteConfig
   def set_environment
     ENV['PARASITE_DOCKER_IMAGE_NAME'] ||=
       begin
-        File.exist?('/proc/1/cgroup') || (STDERR.puts('Cannot find /proc/1/cgroup file.') && exit(1))
+        unless File.exist?('/proc/1/cgroup')
+          STDERR.puts('Cannot find /proc/1/cgroup file.')
+          exit(1)
+        end
         container_id = `cat /proc/1/cgroup | grep 'docker/' | tail -1 | sed 's/^.*\\///'`.strip
         container_id = nil if container_id == ''
         container_id ||= `cat /proc/1/cgroup | grep '/docker-' | tail -1 | sed -Ee 's/^.+\\/docker\-([0-9a-f]+)\\.scope$/\\1/g'`.strip
         container_id = nil if container_id == ''
-        container_id.nil? && STDERR.puts('Unable to determine container ID.') && exit(1)
-        File.socket?('/var/run/docker.sock') || (
-          STDERR.puts('You must map the docker socket to this container at /var/run/docker.sock.') && exit(1)
-        )
+        if container_id.nil?
+          STDERR.puts('Unable to determine docker parasite container ID.')
+          exit(1)
+        end
+        unless File.socket?('/var/run/docker.sock')
+          STDERR.puts('You must map the docker socket to this container at /var/run/docker.sock')
+          exit(1)
+        end
         request = Net::HTTP::Get.new('/containers/json')
         client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
         response = client.request(request)
@@ -32,9 +39,10 @@ class ParasiteConfig
       end
     ENV['PARASITE_DOCKER_IMAGE_ID'] =
       begin
-        File.socket?('/var/run/docker.sock') || (
-          STDERR.puts('You must map the docker socket to this container at /var/run/docker.sock.') && exit(1)
-        )
+        unless File.socket?('/var/run/docker.sock')
+          STDERR.puts('You must map the docker socket to this container at /var/run/docker.sock')
+          exit(1)
+        end
         request = Net::HTTP::Get.new('/images/json')
         client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
         response = client.request(request)
