@@ -13,6 +13,7 @@ parasite_service_name=$1
 
 # Initialize the service configuration into the configuration volume
 /usr/bin/docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock:ro \
   -v <%= getenv!(:parasite_config_docker_volume) %>-${parasite_service_name/_/-}:/tmp/config \
 <% ENV.select { |k, _v| k.start_with?('PARASITE_') }.each do |k, v| %>___ERB_REMOVE_LINE___
   -e <%= k %>=<%= v %> \
