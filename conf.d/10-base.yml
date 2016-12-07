@@ -1,5 +1,5 @@
 ---
-host_files:
+host:
 
   # Environment files
 <% source_files('env/*.env') do |relative_path| %>
@@ -49,7 +49,7 @@ host_files:
     source: <%= relative_path %>
 <% end %>
 
-systemd_units:
+systemd:
 
   - name: parasite-init-stage-two.service
     source: parasite-init-stage-two.service

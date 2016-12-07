@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-
+require 'awesome_print'
 require 'erb'
 require 'fileutils'
 require 'json'
@@ -16,63 +16,74 @@ class ParasiteConfig
   def set_environment
     ENV['PARASITE_DOCKER_IMAGE_NAME'] ||=
       begin
-        unless File.exist?('/proc/1/cgroup')
-          STDERR.puts 'Cannot find /proc/1/cgroup file.'
-          exit 1
-        end
+        File.exist?('/proc/1/cgroup') || (STDERR.puts('Cannot find /proc/1/cgroup file.') && exit(1))
         container_id = `cat /proc/1/cgroup | grep 'docker/' | tail -1 | sed 's/^.*\\///'`.strip
         container_id = nil if container_id == ''
         container_id ||= `cat /proc/1/cgroup | grep '/docker-' | tail -1 | sed -Ee 's/^.+\\/docker\-([0-9a-f]+)\\.scope$/\\1/g'`.strip
         container_id = nil if container_id == ''
-        if container_id.nil?
-          STDERR.puts 'Unable to determine container ID.'
-          exit 1
-        end
-        unless File.socket?('/var/run/docker.sock')
-          STDERR.puts 'You must map the docker socket to this container at /var/run/docker.sock.'
-          exit 1
-        end
+        container_id.nil? && STDERR.puts('Unable to determine container ID.') && exit(1)
+        File.socket?('/var/run/docker.sock') || (
+          STDERR.puts('You must map the docker socket to this container at /var/run/docker.sock.') && exit(1)
+        )
         request = Net::HTTP::Get.new('/containers/json')
         client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
         response = client.request(request)
         JSON.parse(response.body).select { |e| e['Id'] == container_id }.first['Image']
       end
-    ENV['PARASITE_OS'] = ENV['PARASITE_OS'].downcase
+    ENV['PARASITE_DOCKER_IMAGE_ID'] =
+      begin
+        File.socket?('/var/run/docker.sock') || (
+          STDERR.puts('You must map the docker socket to this container at /var/run/docker.sock.') && exit(1)
+        )
+        request = Net::HTTP::Get.new('/images/json')
+        client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
+        response = client.request(request)
+        JSON.parse(response.body).select { |e| e['RepoTags'].include?(ENV.fetch('PARASITE_DOCKER_IMAGE_NAME')) }.first['Id']
+      end
+    ENV['PARASITE_OS'] = ENV.fetch('PARASITE_OS').downcase
     ENV['PARASITE_USER'] ||=
-      ENV['PARASITE_USER'] =
-        case ENV['PARASITE_OS']
-        when 'coreos'
-          'core'
-        when 'hypriotos'
-          'pirate'
-        else
-          'root'
-        end
-    ENV['PARASITE_HOSTNAME'] ||= ENV['HOSTNAME']
-    ENV['PARASITE_HOSTNAME_SHORT'] ||= ENV['PARASITE_HOSTNAME'].split('.').first
+      case ENV.fetch('PARASITE_OS')
+      when 'coreos'
+        'core'
+      when 'hypriotos'
+        'pirate'
+      else
+        'root'
+      end
+    ENV['PARASITE_HOSTNAME'] ||= ENV.fetch('HOSTNAME')
+    ENV['PARASITE_HOSTNAME_SHORT'] ||= ENV.fetch('PARASITE_HOSTNAME').split('.').first
     ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] ||= 'parasite'
     ENV['PARASITE_CONFIG_DOCKER_VOLUME'] ||= 'parasite-config'
     ENV['PARASITE_DATA_DOCKER_VOLUME'] ||= 'parasite-data'
     ENV['PARASITE_CONFIG_DIRECTORY'] = Thread.current.thread_variable_get('parasite_config_directory') || ENV['PARASITE_CONFIG_DIRECTORY'] || '/parasite-config'
     ENV['PARASITE_DATA_DIRECTORY'] ||= '/parasite-data'
     ENV['PARASITE_DATA_BACKUP_ARCHIVE'] ||= 'parasite-data.tar.gz'
+    Thread.current.thread_variable_set('parasite_image_id_file', "#{ENV.fetch('PARASITE_CONFIG_DIRECTORY')}/parasite.id")
+  end
+
+  def check_new_image_id
+    File.exist?(Thread.current.thread_variable_get('parasite_image_id_file')) &&
+      ENV.fetch('PARASITE_DOCKER_IMAGE_ID') == File.read(Thread.current.thread_variable_get('parasite_image_id_file')).strip &&
+      # No change in the parasite image SHA therefore we exit without doing anything
+      exit(0)
+    puts "Deploying #{Thread.current.thread_variable_get('parasite_service_name')} parasite configuration files..."
   end
 
   def backup_existing_files
-    backup_dir = "#{ENV['PARASITE_CONFIG_DIRECTORY']}/.backup_#{Time.now.strftime('%Y%m%d%H%M%S')}"
-    Dir["#{ENV['PARASITE_CONFIG_DIRECTORY']}/*"].each do |dir|
+    backup_dir = "#{ENV.fetch('PARASITE_CONFIG_DIRECTORY')}/.backup_#{Time.now.strftime('%Y%m%d%H%M%S')}"
+    Dir["#{ENV.fetch('PARASITE_CONFIG_DIRECTORY')}/*"].each do |dir|
       FileUtils.mkdir_p(backup_dir)
       FileUtils.mv(dir, backup_dir)
     end
     # Delete old backups
-    Dir.glob("#{ENV['PARASITE_CONFIG_DIRECTORY']}/.backup_*").each do |dir|
+    Dir.glob("#{ENV.fetch('PARASITE_CONFIG_DIRECTORY')}/.backup_*").each do |dir|
       FileUtils.rm_rf(dir) if ((Time.now - File.ctime(dir)) / (24 * 3600)) > 7
     end
   end
 
-  def process_config_files(config_directory)
+  def process_config_files
     # Execute each deploy script in order
-    Dir["#{config_directory}/*.yml"].sort.each do |config_file|
+    Dir['./conf.d/*.yml'].sort.each do |config_file|
       # Set the source directory thread variable
       Thread.current.thread_variable_set(
         'parasite_source_directory',
@@ -102,17 +113,21 @@ class ParasiteConfig
     end
   end
 
+  def update_image_id
+    File.write(Thread.current.thread_variable_get('parasite_image_id_file'), ENV.fetch('PARASITE_DOCKER_IMAGE_ID'))
+  end
+
   private
 
   def deploy_service_files(parasite_service_name)
-    return if (container_files = @config["#{parasite_service_name}_files"]).nil? || container_files.empty?
+    return if (container_files = @config[parasite_service_name] || @config["#{parasite_service_name}_files"]).nil? || container_files.empty?
     container_files.each do |file|
       # Check for required arguments
       unless file['path'] && !file['path'].empty?
         STDERR.puts 'Mandatory file path not specified.'
         exit 1
       end
-      file['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], file['path']) unless file['path'].start_with?('/')
+      file['path'] = File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), file['path']) unless file['path'].start_with?('/')
       unless file['source'] && !file['source'].empty?
         STDERR.puts 'Mandatory file source not specified.'
         exit 1
@@ -127,16 +142,16 @@ class ParasiteConfig
   end
 
   def deploy_systemd_units
-    return unless (systemd_units = @config['systemd_units']) && !systemd_units.empty?
+    return unless (systemd_units = @config['systemd'] || @config['systemd_units']) && !systemd_units.empty?
     systemd_units.each do |unit|
       # Check for required arguments
       unless unit['name'] && !unit['name'].empty?
         STDERR.puts 'Mandatory systemd unit name not specified.'
         exit 1
       end
-      unit['path'] = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'systemd', unit['name'])
+      unit['path'] = File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), 'systemd', unit['name'])
       next unless unit['source'] && !unit['source'].empty?
-      unit['source'] = File.join('systemd', unit['source']) unless unit['source'].start_with?('systemd') || unit['source'].start_with?('/')
+      unit['source'] = File.join('systemd', unit['source']) unless unit['source'].start_with?('systemd', '/')
       unit['source'] = File.join(Thread.current.thread_variable_get('parasite_source_directory'), unit['source']) unless unit['source'].start_with?('/')
       unless File.exist?(unit['source'])
         STDERR.puts "Systemd unit source '#{unit['source']}' not found."
@@ -156,7 +171,7 @@ class ParasiteConfig
       .select { |attrs| attrs['start'] == true }
       .map { |attrs| attrs['name'] }
       .each do |name|
-        File.open(File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'systemd', 'start'), 'a') do |f|
+        File.open(File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), 'systemd', 'start'), 'a') do |f|
           puts "Adding #{name} to systemd auto-start list"
           f.puts name
         end
@@ -165,7 +180,7 @@ class ParasiteConfig
 
   def build_environment_files
     # Ensure the environment file directory is created
-    env_dir = File.join(ENV['PARASITE_CONFIG_DIRECTORY'], 'env')
+    env_dir = File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), 'env')
     FileUtils.mkdir_p(env_dir)
 
     File.open(File.join(env_dir, 'profile.env'), 'w') do |file|
@@ -184,7 +199,7 @@ class ParasiteConfig
       `figlet 'Docker Parasite!!!'`.lines.map(&:chomp).each do |line|
         file.puts("echo #{Shellwords.escape(line)}")
       end
-      file.puts "echo #{Shellwords.escape("This host been taken over by a Docker Parasite (#{ENV['PARASITE_DOCKER_IMAGE_NAME']})!")}"
+      file.puts "echo #{Shellwords.escape("This host been taken over by a Docker Parasite (#{ENV.fetch('PARASITE_DOCKER_IMAGE_NAME')})!")}"
       file.puts 'echo'
       ENV.select { |k, _v| k =~ /^PARASITE_/ }.sort.each do |k, v|
         file.puts("echo #{Shellwords.escape("#{k}=#{v}")}")

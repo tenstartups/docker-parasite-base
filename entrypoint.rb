@@ -5,10 +5,11 @@ STDERR.puts('Specify the service name as the first argument and optional target 
 
 Thread.current.thread_variable_set('parasite_service_name', ARGV[0].tr('-', '_'))
 Thread.current.thread_variable_set('parasite_config_directory', ARGV[1])
-puts "Deploying #{Thread.current.thread_variable_get('parasite_service_name')} parasite configuration files..."
 
 # Prepare parasite environment variables
 parasite_config = ParasiteConfig.new
 parasite_config.set_environment
+parasite_config.check_new_image_id
 parasite_config.backup_existing_files
-parasite_config.process_config_files('conf.d')
+parasite_config.process_config_files
+parasite_config.update_image_id
