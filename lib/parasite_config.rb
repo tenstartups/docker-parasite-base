@@ -125,6 +125,7 @@ class ParasiteConfig
   end
 
   def update_image_id
+    FileUtils.mkdir_p(File.dirname(Thread.current.thread_variable_get('parasite_image_id_file')))
     File.write(Thread.current.thread_variable_get('parasite_image_id_file'), ENV.fetch('PARASITE_DOCKER_IMAGE_ID'))
   end
 
