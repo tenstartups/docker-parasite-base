@@ -113,6 +113,7 @@ class ParasiteConfig
 
       # Call individual config methods
       parasite_service_name = Thread.current.thread_variable_get('parasite_service_name')
+      raise 'systemd is a reserved key and cannot be use as a service name' if parasite_service_name == 'systemd'
       deploy_service_files(parasite_service_name)
       if parasite_service_name == 'host'
         deploy_systemd_units
