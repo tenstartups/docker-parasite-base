@@ -46,7 +46,10 @@ class ParasiteConfig
         request = Net::HTTP::Get.new('/images/json')
         client = NetX::HTTPUnix.new('unix:///var/run/docker.sock')
         response = client.request(request)
-        JSON.parse(response.body).select { |e| (e['RepoTags'] || []).include?(ENV.fetch('PARASITE_DOCKER_IMAGE_NAME')) }.first['Id']
+        JSON.parse(response.body).select do |e|
+          (e['RepoTags'] || []).include?(ENV.fetch('PARASITE_DOCKER_IMAGE_NAME')) ||
+            (e['RepoTags'] || []).include?("#{ENV.fetch('PARASITE_DOCKER_IMAGE_NAME')}:latest")
+        end.first['Id']
       end
     ENV['PARASITE_OS'] = ENV.fetch('PARASITE_OS').downcase
     ENV['PARASITE_USER'] ||=
