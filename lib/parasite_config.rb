@@ -4,6 +4,7 @@ require 'erb'
 require 'fileutils'
 require 'json'
 require 'net_http_unix'
+require 'ptools'
 require 'shellwords'
 require 'parasite_binding'
 require 'yaml'
@@ -222,11 +223,15 @@ class ParasiteConfig
 
   def deploy_file(source, target, permissions)
     puts "'#{source}' -> '#{target}'"
-    template = File.read(source)
-    content = ERB.new(template).result(@bindings.instance_eval { binding })
-    content.gsub!(/^(.*)(___ERB_REMOVE_LINE___)(.*)$\n/, '')
     FileUtils.mkdir_p(File.dirname(target))
-    File.write(target, content)
+    if File.binary?(source)
+      FileUtils.cp(source, target)
+    else
+      template = File.read(source)
+      content = ERB.new(template).result(@bindings.instance_eval { binding })
+      content.gsub!(/^(.*)(___ERB_REMOVE_LINE___)(.*)$\n/, '')
+      File.write(target, content)
+    end
     return unless permissions
     if permissions =~ /[0-7]{3,4}/
       FileUtils.chmod(permissions.to_i(8), target)
