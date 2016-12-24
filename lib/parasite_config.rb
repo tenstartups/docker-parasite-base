@@ -1,10 +1,10 @@
 #!/usr/bin/env ruby
 require 'awesome_print'
 require 'erb'
+require 'filemagic'
 require 'fileutils'
 require 'json'
 require 'net_http_unix'
-require 'ptools'
 require 'shellwords'
 require 'parasite_binding'
 require 'yaml'
@@ -222,11 +222,12 @@ class ParasiteConfig
   end
 
   def deploy_file(source, target, permissions)
-    puts "'#{source}' -> '#{target}'"
     FileUtils.mkdir_p(File.dirname(target))
-    if File.binary?(source)
+    if binary?(source)
+      puts "Copying '#{source}' -> '#{target}'"
       FileUtils.cp(source, target)
     else
+      puts "Processing '#{source}' -> '#{target}'"
       template = File.read(source)
       content = ERB.new(template).result(@bindings.instance_eval { binding })
       content.gsub!(/^(.*)(___ERB_REMOVE_LINE___)(.*)$\n/, '')
@@ -241,5 +242,16 @@ class ParasiteConfig
     # Clear environment variables
     ENV.delete('SYSTEMD_SERVICE_NAME')
     ENV.delete('SYSTEMD_TIMER_NAME')
+  end
+
+  def text?(filename)
+    fm = FileMagic.new(FileMagic::MAGIC_MIME)
+    fm.file(filename) =~ /^text\//
+  ensure
+    fm.close
+  end
+
+  def binary?(filename)
+    !text?(filename)
   end
 end

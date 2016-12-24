@@ -17,11 +17,11 @@ ENV \
 
 # Install base packages.
 RUN \
-  apk --update add ruby ruby-irb ruby-json && \
+  apk --update add build-base file-dev ruby-dev ruby-irb ruby-json && \
   rm -rf /var/cache/apk/*
 
 # Install gems.
-RUN gem install awesome_print net_http_unix ptools --no-document
+RUN gem install awesome_print net_http_unix ruby-filemagic --no-document
 
 # Set the working directory.
 WORKDIR "/home/parasite"
