@@ -14,9 +14,8 @@ echo >> "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
 cat \
   "<%= getenv!(:parasite_config_directory) %>/env/etcd-bootstrap.env" >> \
   "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
-echo "ETCD_DISCOVERY=$(curl --silent https://discovery.etcd.io/new?size=1)" \
-  >> "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
-
+echo "ETCD_DISCOVERY=$(curl --silent https://discovery.etcd.io/new?size=1)" >> \
+  "<%= getenv!(:parasite_config_directory) %>/env/etcd.env"
 
 echo "Starting etcd service..."
 systemctl start etcd
