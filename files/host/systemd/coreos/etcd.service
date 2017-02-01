@@ -12,7 +12,7 @@ ExecStartPre=/opt/bin/etcd-config-prepare
 ExecStart=/usr/bin/docker run \
   -p 2379:2379 \
   -p 2380:2380 \
-  -v <%= getenv!(:parasite_config_docker_volume) %>-etcd:/etc/etcd \
+  -v <%= getenv!(:parasite_config_docker_volume) %>-etcd:/etc/etcd:ro \
   -v <%= getenv!(:parasite_data_docker_volume) %>-etcd:/var/lib/etcd \
   -v /etc/ssl/certs/ca-certificates.crt:/etc/ssl/certs/ca-certificates.crt:ro \
   --env-file <%= getenv!(:parasite_config_directory) %>/env/etcd.env \
