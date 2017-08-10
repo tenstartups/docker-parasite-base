@@ -6,9 +6,9 @@ set -e
 # running services.
 
 # Check for unsupported Docker version
-! [[ $(docker version --format '{{.Server.Version}}') =~ ^1\s*\.1[0-2]\.[0-9]+\s*$ ]] && \
-  echo >&2 "Docker version must be at least 1.10.x" && \
-  exit 1
+# ! [[ $(docker version --format '{{.Server.Version}}') =~ ^1\s*\.1[0-2]\.[0-9]+\s*$ ]] && \
+#   echo >&2 "Docker version must be at least 1.10.x" && \
+#   exit 1
 
 # Create the default bridge network and extract the bridge network address
 /usr/bin/docker network rm <%= getenv!(:parasite_docker_bridge_network) %> || true
