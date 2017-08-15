@@ -9,14 +9,15 @@ require 'shellwords'
 require 'parasite_binding'
 require 'yaml'
 
-
 # From ioctls.h
 SIOCGIFADDR = 0x8915
 
 class ParasiteConfig
-  attr_accessor :systemd_start_list
+  attr_accessor :parasite_service_name, :parasite_config_directory, :systemd_start_list
 
-  def initialize
+  def initialize(name:, directory:)
+    self.parasite_service_name = name
+    self.parasite_config_directory = directory
     self.systemd_start_list ||= []
   end
 
@@ -73,7 +74,7 @@ class ParasiteConfig
     ENV['PARASITE_DOCKER_BRIDGE_NETWORK'] ||= 'parasite'
     ENV['PARASITE_CONFIG_DOCKER_VOLUME'] ||= 'parasite-config'
     ENV['PARASITE_DATA_DOCKER_VOLUME'] ||= 'parasite-data'
-    ENV['PARASITE_CONFIG_DIRECTORY'] = Thread.current.thread_variable_get('parasite_config_directory') || ENV['PARASITE_CONFIG_DIRECTORY'] || '/parasite-config'
+    ENV['PARASITE_CONFIG_DIRECTORY'] = parasite_config_directory || ENV['PARASITE_CONFIG_DIRECTORY'] || '/parasite-config'
     ENV['PARASITE_DATA_DIRECTORY'] ||= '/parasite-data'
     ENV['PARASITE_DATA_BACKUP_ARCHIVE'] ||= 'parasite-data.tar.gz'
     Thread.current.thread_variable_set('parasite_image_id_file', "#{ENV.fetch('PARASITE_CONFIG_DIRECTORY')}/parasite.id")
@@ -84,7 +85,7 @@ class ParasiteConfig
       ENV.fetch('PARASITE_DOCKER_IMAGE_ID') == File.read(Thread.current.thread_variable_get('parasite_image_id_file')).strip &&
       # No change in the parasite image SHA therefore we exit without doing anything
       exit(0)
-    puts "Deploying #{Thread.current.thread_variable_get('parasite_service_name')} parasite configuration files..."
+    puts "Deploying #{parasite_service_name} parasite configuration files..."
   end
 
   def backup_existing_files
@@ -108,7 +109,7 @@ class ParasiteConfig
         File.join(
           '.',
           File.basename(config_file)[/([0-9]+\-[a-z0-9]+)(\-.+)?\.yml/, 1],
-          Thread.current.thread_variable_get('parasite_service_name').tr('_', '-')
+          parasite_service_name.tr('_', '-')
         )
       )
       @bindings = ParasiteBinding.new
@@ -119,9 +120,8 @@ class ParasiteConfig
       @config = YAML.load(yaml) || {}
 
       # Call individual config methods
-      parasite_service_name = Thread.current.thread_variable_get('parasite_service_name')
       raise 'systemd is a reserved key and cannot be use as a service name' if parasite_service_name == 'systemd'
-      deploy_service_files(parasite_service_name)
+      deploy_service_files
       if parasite_service_name == 'host'
         deploy_systemd_units
         build_environment_files
@@ -133,6 +133,7 @@ class ParasiteConfig
   end
 
   def build_systemd_start_list
+    return unless parasite_service_name == 'host'
     File.open(File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), 'systemd', 'start'), 'w') do |f|
       systemd_start_list.each do |name|
         puts "Adding #{name} to systemd auto-start list"
@@ -148,7 +149,7 @@ class ParasiteConfig
 
   private
 
-  def deploy_service_files(parasite_service_name)
+  def deploy_service_files
     return if (container_files = @config[parasite_service_name] || @config["#{parasite_service_name}_files"]).nil? || container_files.empty?
     container_files.each do |file|
       # Check for required arguments
