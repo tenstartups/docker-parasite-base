@@ -12,4 +12,5 @@ parasite_config.set_environment
 parasite_config.check_new_image_id
 parasite_config.backup_existing_files
 parasite_config.process_config_files
+parasite_config.build_systemd_start_list
 parasite_config.update_image_id

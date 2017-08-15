@@ -14,6 +14,12 @@ require 'yaml'
 SIOCGIFADDR = 0x8915
 
 class ParasiteConfig
+  attr_accessor :systemd_start_list
+
+  def initialize
+    self.systemd_start_list ||= []
+  end
+
   def set_environment
     ENV['PARASITE_DOCKER_IMAGE_NAME'] ||=
       begin
@@ -126,6 +132,15 @@ class ParasiteConfig
     end
   end
 
+  def build_systemd_start_list
+    File.open(File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), 'systemd', 'start'), 'w') do |f|
+      systemd_start_list.each do |name|
+        puts "Adding #{name} to systemd auto-start list"
+        f.puts name
+      end
+    end
+  end
+
   def update_image_id
     FileUtils.mkdir_p(File.dirname(Thread.current.thread_variable_get('parasite_image_id_file')))
     File.write(Thread.current.thread_variable_get('parasite_image_id_file'), ENV.fetch('PARASITE_DOCKER_IMAGE_ID'))
@@ -180,16 +195,14 @@ class ParasiteConfig
       deploy_file(unit['source'], unit['path'], '0644')
     end
 
-    # Create the service start file
-    systemd_units
-      .select { |attrs| attrs['start'] == true }
-      .map { |attrs| attrs['name'] }
-      .each do |name|
-        File.open(File.join(ENV.fetch('PARASITE_CONFIG_DIRECTORY'), 'systemd', 'start'), 'a') do |f|
-          puts "Adding #{name} to systemd auto-start list"
-          f.puts name
-        end
+    # Append or remove from list of services to start
+    systemd_units.each do |attrs|
+      if attrs['start']
+        systemd_start_list << attrs['name']
+      else
+        systemd_start_list.delete(attrs['name'])
       end
+    end
   end
 
   def build_environment_files
