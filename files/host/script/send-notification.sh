@@ -1,4 +1,4 @@
-#!/bin/sh +x
+#!/bin/bash +x
 set -e
 
 # Exit if we don't have a configuration file
