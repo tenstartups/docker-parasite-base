@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 set -e
 
 # Set environment
@@ -28,7 +28,7 @@ exit_failure() {
 
 test_number=0
 next_test_wait=1
-while [[ "${test_number}" -lt "${MAX_CHECKS}" ]]; do
+while [ "${test_number}" -lt "${MAX_CHECKS}" ]; do
   test_number=$(( test_number + 1 ))
   [ "$(docker inspect --type container --format "{{.State.Running}}" ${DOCKER_CONTAINER_NAME} 2>/dev/null || true)" = "true" ] && exit_success
   echo "Waiting for ${DOCKER_CONTAINER_NAME} container to start..."
