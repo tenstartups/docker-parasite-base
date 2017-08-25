@@ -1,4 +1,4 @@
-#!/bin/bash +x
+#!/bin/sh +x
 set -e
 
 # Set environment
