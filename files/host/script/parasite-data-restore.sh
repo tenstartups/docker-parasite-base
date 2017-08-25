@@ -1,4 +1,4 @@
-#!/bin/sh +x
+#!/bin/bash +x
 set -e
 
 # Exit if the tar file is not present

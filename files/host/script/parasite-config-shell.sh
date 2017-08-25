@@ -1,4 +1,4 @@
-#!/bin/sh +x
+#!/bin/bash +x
 set -e
 
 # Get the config directory names from the legacy parasite config volume
