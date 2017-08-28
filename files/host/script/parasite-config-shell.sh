@@ -17,8 +17,9 @@ EOF
 done
 cat << EOF >> "${tempfile}"
   -w /tmp/config \\
-  tenstartups/alpine:<%= choose!(:parasite_os, coreos: 'latest', hypriotos: 'armhf') %> \\
-  sh -c "figlet 'Parasite Config' && ls -al && exec bash"
+  --entrypoint /bin/sh \\
+  <%= getenv!(:parasite_docker_image_name) %> \\
+  -c "figlet 'Parasite Config' && ls -al && exec bash"
 EOF
 
 # Execute then delete the command tempfile
