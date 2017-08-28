@@ -1,4 +1,4 @@
-#!/bin/sh +x
+#!/bin/bash
 set -e
 
 MEMBER_NAME=$1

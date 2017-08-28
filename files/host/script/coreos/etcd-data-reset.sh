@@ -1,4 +1,4 @@
-#!/bin/sh +x
+#!/bin/bash
 set -e
 
 # Clear the etcd data directory (destructive)

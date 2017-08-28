@@ -1,4 +1,4 @@
-#!/bin/sh +x
+#!/bin/bash
 set -e
 
 echo "Stopping etcd service..."
