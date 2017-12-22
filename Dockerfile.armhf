@@ -7,7 +7,7 @@
 
 FROM tenstartups/alpine:armhf
 
-MAINTAINER Marc Lennox <marc.lennox@gmail.com>
+LABEL maintainer="Marc Lennox <marc.lennox@gmail.com>"
 
 # Set environment
 ENV \
