@@ -53,13 +53,6 @@ systemd:
 
   - name: parasite-init-stage-two.service
     source: parasite-init-stage-two.service
-<% if coreos? %>
-  - name: newrelic-agent.service
-    source: coreos/newrelic-agent.service
-  - name: etcd.service
-    start: true
-    source: coreos/etcd.service
-<% end %>
   - name: docker-check-image-update.service
     source: docker-check-image-update.service
   - name: docker-cleanup.service
