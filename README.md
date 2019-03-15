@@ -40,7 +40,7 @@ Requires=network-online.target docker.service
 RemainAfterExit=true
 Restart=on-failure
 ExecStartPre=/bin/sh -c "[ -f '/root/.docker/config.json' ] || \
-  docker login -u <docker_username> -e <docker_email> -p <docker_password> <docker_registry_hostname>"
+  docker login --username <docker_username> --password <docker_password> <docker_registry_hostname>"
 ExecStartPre=/usr/bin/docker pull <docker_parasite_image> \
 ExecStartPre=/usr/bin/docker run --rm \
   -v /var/run/docker.sock:/var/run/docker.sock:ro \
