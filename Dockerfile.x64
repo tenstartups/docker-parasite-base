@@ -12,11 +12,12 @@ LABEL maintainer="Marc Lennox <marc.lennox@gmail.com>"
 ENV \
   PARASITE_OS=coreos \
   HOME=/home/parasite \
-  RUBYLIB=/home/parasite/lib
+  RUBYLIB=/home/parasite/lib \
+  TERM=xterm-color
 
 # Install base packages.
 RUN \
-  apk --update add build-base figlet file-dev ruby-dev ruby-irb ruby-json && \
+  apk --update add bash build-base busybox-extras coreutils curl figlet file-dev nano procps rsync ruby-dev ruby-irb ruby-json tar wget && \
   rm -rf /var/cache/apk/*
 
 # Install gems.
